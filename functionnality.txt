@@ -1,0 +1,45 @@
+  FONCTION
+----------------
+  1- Sauvegarde:
+    a-complète (Tous le domaine)
+    b-partielle (Préciser l'arborescence d'où on part)
+  2- Restauration
+    a-complète (Tous le domaine)
+    b-partielle (Préciser l'arborescence d'où on part)
+  3- Edition
+
+  4- Visualition des droits
+    a-complète (Tous le domaine)
+    b-partielle (Préciser l'arborescence d'où on part)
+
+
+
+    MENU
+----------------
+
+Domain : ......
+User connect : .....
+
+    0 - Help
+    1 - Quit the program
+    2 - Change domaine
+    3 - Re-authentification
+    4 - Sauvegarde
+    5 - Restauration
+    6 - Edition
+    7 - Visualition
+
+
+  SOUS-MENU : Sauvgarde
+----------------
+
+Domain : ......
+User connect : .....
+
+    0 - Help
+    1 - Return
+    2 - All Domain
+    3 - Enter an arborescence
+
+
+     
