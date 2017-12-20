@@ -12,6 +12,7 @@
 
 
 
+
 =============================
 EXPLICATION DES FONCTIONS
 =============================
@@ -84,6 +85,16 @@ User connect : .....
     1 - Quit the program
     2 - Change domaine
     3 - Re-authentification
+<<<<<<< HEAD
+    4 - Save rights
+    5 - Restoration
+    6 - Rights edition
+    7 - See the rights
+=============================================
+
+
+SOUS-MENU : Save rights
+=======
     4 - Sauvegarde
     5 - Restauration
     6 - Edition
@@ -92,6 +103,10 @@ User connect : .....
 
 
 SOUS-MENU : Sauvegarde
+<<<<<<< Updated upstream
+=======
+>>>>>>> master
+>>>>>>> Stashed changes
 =============================================
               SAVE RIGHTS
 =============================================
@@ -102,4 +117,22 @@ User connect : .....
     1 - Return
     2 - All Domain
     3 - Enter an arborescence
+=============================================
+
+
+=============================================
+    SAVE RIGHTS : Enter an arborescence
+=============================================
+
+Enter a directory who your file is save : ...
+
+Enter an arborescence: ......
+
+You have save the rights from ..... at ...
+
+
+SOUS-MENU : Restoration
+
+=============================================
+              RESTORATION
 =============================================
