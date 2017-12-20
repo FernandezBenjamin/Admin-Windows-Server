@@ -8,7 +8,7 @@
     b-partielle (Préciser l'arborescence d'où on part)
   3- Edition
 
-  4- Visualition des droits
+  4- Visualisation des droits
 
 
 
@@ -16,18 +16,18 @@
 EXPLICATION DES FONCTIONS
 =============================
 
-  Sauvgarde
+  Sauvegarde
 --------------
   a- Complète:
 
-On récupére tous les droits, puis on les stock dans un fichier texte.
+On récupère tous les droits, puis on les stock dans un fichier texte.
 On demandera à l'utilisateur la destination de la sauvegarde
 
   b- Partielle:
 
-On récupére tous les droits a partir d'une arborescence donné.
+On récupère tous les droits a partir d'une arborescence donné.
 On stockera les droits dans un fichier texte on demandera à l'utilisateur
-la destinationde la sauvegarde
+la destination de la sauvegarde
 
   Restauration
 ----------------
@@ -61,7 +61,7 @@ Object select:.....
 =============================================
 
 
-  Visualition
+  Visualisation
 -----------------
 
 On affichera une arborescence par niveau du domaine, puis si l'utilisateur veut voir les droits de l'objet
@@ -87,11 +87,11 @@ User connect : .....
     4 - Sauvegarde
     5 - Restauration
     6 - Edition
-    7 - Visualition
+    7 - Visualisation
 =============================================
 
 
-SOUS-MENU : Sauvgarde
+SOUS-MENU : Sauvegarde
 =============================================
               SAVE RIGHTS
 =============================================
