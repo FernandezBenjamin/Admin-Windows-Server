@@ -85,7 +85,6 @@ User connect : .....
     1 - Quit the program
     2 - Change domaine
     3 - Re-authentification
-<<<<<<< HEAD
     4 - Save rights
     5 - Restoration
     6 - Rights edition
@@ -94,7 +93,7 @@ User connect : .....
 
 
 SOUS-MENU : Save rights
-=======
+
     4 - Sauvegarde
     5 - Restauration
     6 - Edition
@@ -103,10 +102,6 @@ SOUS-MENU : Save rights
 
 
 SOUS-MENU : Sauvegarde
-<<<<<<< Updated upstream
-=======
->>>>>>> master
->>>>>>> Stashed changes
 =============================================
               SAVE RIGHTS
 =============================================
