@@ -9,14 +9,74 @@
   3- Edition
 
   4- Visualition des droits
-    a-complète (Tous le domaine)
-    b-partielle (Préciser l'arborescence d'où on part)
 
 
 
-    MENU
+=============================
+EXPLICATION DES FONCTIONS
+=============================
+
+  Sauvgarde
+--------------
+  a- Complète:
+
+On récupére tous les droits, puis on les stock dans un fichier texte.
+On demandera à l'utilisateur la destination de la sauvegarde
+
+  b- Partielle:
+
+On récupére tous les droits a partir d'une arborescence donné.
+On stockera les droits dans un fichier texte on demandera à l'utilisateur
+la destinationde la sauvegarde
+
+  Restauration
 ----------------
+  a- Complète:
 
+On demande à l'utilisateur quel fichier texte il veut prendre pour faire la restauration
+A partir de ce fichier texte on va récupérer tous les droits et les appliquées
+
+  b- partielle:
+
+On demande à l'utilisateur quel fichier texte il veut prendre pour faire la restauration.
+On demande à l'utilisateur à partir de quel arborescence il veut effectuer la restauration
+Puis on cherche dans le fichier sélectionné si l'arborescence existe, pour ensuite effectuer la restauration
+
+  Edition
+--------------
+
+  On demande à l'utilisateur l'objet sur lequel on doit éditer les droits.
+  Ensuite on affiche les droits présent sur celui-ci, puis on affiche le menu d'édition des droits
+
+EXEMPLE DE MENU D'EDITION DES DROITS:
+=============================================
+              Rights edition
+=============================================
+Object select:.....
+
+  0- Help
+  1- Quit
+  2- See the rights
+  3- Edit the rigths
+=============================================
+
+
+  Visualition
+-----------------
+
+On affichera une arborescence par niveau du domaine, puis si l'utilisateur veut voir les droits de l'objet
+dans lequel il se trouve il tapera le numéros qui correspond.
+
+On demande à l'utilisateur s'il connait le chemin de l'objet dont il veut voir les droits.
+On si rend et on lui demande si il veut afficher les droits de celui ou non
+
+
+
+EXEMPLE DE MENU :
+PRINCIPALE
+=============================================
+                  MENU
+=============================================
 Domain : ......
 User connect : .....
 
@@ -28,11 +88,13 @@ User connect : .....
     5 - Restauration
     6 - Edition
     7 - Visualition
+=============================================
 
 
-  SOUS-MENU : Sauvgarde
-----------------
-
+SOUS-MENU : Sauvgarde
+=============================================
+              SAVE RIGHTS
+=============================================
 Domain : ......
 User connect : .....
 
@@ -40,6 +102,4 @@ User connect : .....
     1 - Return
     2 - All Domain
     3 - Enter an arborescence
-
-
-     
+=============================================
