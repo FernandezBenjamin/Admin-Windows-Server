@@ -32,6 +32,9 @@ la destination de la sauvegarde
 
   Restauration
 ----------------
+
+Avant chaque restauration le programme lui montrera les modifications qu'il vont être effectuer
+
   a- Complète:
 
 On demande à l'utilisateur quel fichier texte il veut prendre pour faire la restauration
@@ -42,6 +45,9 @@ A partir de ce fichier texte on va récupérer tous les droits et les appliquée
 On demande à l'utilisateur quel fichier texte il veut prendre pour faire la restauration.
 On demande à l'utilisateur à partir de quel arborescence il veut effectuer la restauration
 Puis on cherche dans le fichier sélectionné si l'arborescence existe, pour ensuite effectuer la restauration
+
+Sur les droits d'héritage, on lui laissera le choix entre les mettre explicitement dans l'objet ou les mettre
+tel qu'il était dans les dossier plus haut.
 
   Edition
 --------------
@@ -64,6 +70,11 @@ Object select:.....
 
   Visualisation
 -----------------
+
+  a-différenciels
+
+On demande à l'utilisateur de charger un fichier de sauvegarde, puis on lui demande s'il veut les diffenrences
+entre les deux (save vs now) ou par rapport a un objet 
 
 On affichera une arborescence par niveau du domaine, puis si l'utilisateur veut voir les droits de l'objet
 dans lequel il se trouve il tapera le numéros qui correspond.
