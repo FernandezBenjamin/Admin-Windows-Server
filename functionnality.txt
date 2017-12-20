@@ -85,7 +85,6 @@ User connect : .....
     1 - Quit the program
     2 - Change domaine
     3 - Re-authentification
-<<<<<<< HEAD
     4 - Save rights
     5 - Restoration
     6 - Rights edition
