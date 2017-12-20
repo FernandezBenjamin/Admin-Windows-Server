@@ -121,3 +121,36 @@ SOUS-MENU : Restoration
 =============================================
               RESTORATION
 =============================================
+Domain : ......
+User connect : .....
+
+    0- Help
+    1- Restoration complet
+    2- Restoration from a directory
+=============================================
+
+
+=============================================
+          RESTORATION: complet
+=============================================
+Domain : ......
+User connect : .....
+
+    0- Help
+    1- Restoration complet
+    2- Restoration from a directory
+=============================================
+
+=============================================
+        RESTORATION: from a directory
+=============================================
+Domain : ......
+User connect : .....
+
+Select a file : ....
+
+Enter a directory: ....
+
+Would you restore this object(1) or with his under object(2) =>..
+
+Your restoration is done
