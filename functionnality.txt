@@ -74,7 +74,7 @@ Object select:.....
   a-différenciels
 
 On demande à l'utilisateur de charger un fichier de sauvegarde, puis on lui demande s'il veut les diffenrences
-entre les deux (save vs now) ou par rapport a un objet 
+entre les deux (save vs now) ou par rapport a un objet
 
 On affichera une arborescence par niveau du domaine, puis si l'utilisateur veut voir les droits de l'objet
 dans lequel il se trouve il tapera le numéros qui correspond.

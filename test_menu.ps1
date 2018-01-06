@@ -1,22 +1,19 @@
-﻿#Allow the script execution
-Set-ExecutionPolicy Unrestricted
-
-Import-Module ActiveDirectory
-
-$Domain = Read-Host -Prompt "Please input your domain name"
-$Username = Read-Host -Prompt "Please input your username"
+﻿
+#Variable globale
+$Local:domainName = $null
+$Local:userName = $null
 
 #vérifier si l'utilisateur existe dans l'AD (voir plus j'ai pas encore checké)
-Invoke-Command -FilePath ..\..\powershell\Test-UserCredentials.ps1 -ComputerName $env:COMPUTERNAME
-
-#$User = Get-Credential -Credential $Username
+Invoke-Command -FilePath Test-UserCredentials.ps1 -ComputerName $env:COMPUTERNAME
 
 
 function menu #Main menu
 {
 cls #clean the screen
-Write-Host "Domain :"$Domain
-Write-Host "User :"$User.UserName
+#$domainName = "Random1"
+#$userName = "user"
+Write-Host "Domain :"$domainName
+Write-Host "User :"$userName
 
 Write-Host "============================================="
 Write-Host "                  MENU"

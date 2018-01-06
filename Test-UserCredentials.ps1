@@ -19,6 +19,9 @@
             Script blog post: http://wp.me/pOTjD-7Q
  #> 
 
+ #Allow the script execution
+Set-ExecutionPolicy Unrestricted
+
  #Import Active Directory Module
  Import-Module Activedirectory
 
@@ -80,6 +83,7 @@ Function TestUserCredentials
     Try
     {
         $DomainFQDN = (Get-ADDomain $DomainNetBIOS).DNSRoot
+        
     }
     Catch
     {
@@ -145,7 +149,8 @@ Function TestUserCredentials
     Else
         {
         Write-Host "SUCCESS: The account $Username successfully authenticated against the domain: $DomainFQDN" -BackgroundColor Black -ForegroundColor Green
-        Rerun
+        $domainName = $DomainFGDN
+        $userName = $UserName
         Break
         }
 }    
