@@ -1,6 +1,6 @@
-$Date = Get-Date -UFormat "%Y_%m_%d"
+$Date = Get-Date -UFormat "%Y_%m_%d_%H_%M"
 
-$OutFile = "C:\Backup_$Date.csv"
+$OutFile = "C:\Backup\Backup_$Date.csv"
 Del $OutFile
 
 
