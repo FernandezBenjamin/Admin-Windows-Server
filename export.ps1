@@ -1,7 +1,18 @@
 $Date = Get-Date -UFormat "%Y_%m_%d_%H_%M"
 
 $OutFile = "C:\Backup\Backup_$Date.csv"
-Del $OutFile
+
+
+if (Test-Path $OutFile){
+    Del $OutFile
+}
+
+
+if (!(Test-Path -Path "C:\Backup")){
+    New-Item -ItemType Directory -Path C:\Backup
+
+}
+
 
 
 
@@ -22,7 +33,7 @@ foreach($Child in $Childs){
 
     Write-Host $Child.distinguishedName
     
-    $Header = "DistinguishedName, " + $Child.distinguishedName
+    $Header = $Child.distinguishedName
     
     Add-Content -Value $Header -Path $OutFile
 
