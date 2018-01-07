@@ -104,19 +104,6 @@ User connect : .....
 
 
 SOUS-MENU : Save rights
-=======
-    4 - Sauvegarde
-    5 - Restauration
-    6 - Edition
-    7 - Visualisation
-=============================================
-
-
-SOUS-MENU : Sauvegarde
-<<<<<<< Updated upstream
-=======
->>>>>>> master
->>>>>>> Stashed changes
 =============================================
               SAVE RIGHTS
 =============================================
@@ -142,7 +129,6 @@ You have save the rights from ..... at ...
 
 
 SOUS-MENU : Restoration
-
 =============================================
               RESTORATION
 =============================================
