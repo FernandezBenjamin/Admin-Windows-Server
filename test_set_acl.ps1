@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿#Fonction de recuperation de toutes les OU du domaine
 Function Get-ADSIOU
 {
@@ -97,6 +98,9 @@ while($saisie -lt 6 -and $saisie -gt 0)
 }
 
 $input = Read-Host -prompt "write to Ou name affected"
+=======
+﻿$input = Read-Host -prompt "write to Ou name affected"
+>>>>>>> master
 
 $allowance = Read-Host -Prompt "Deny / Allow "
 
