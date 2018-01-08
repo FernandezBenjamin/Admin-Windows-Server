@@ -8,8 +8,16 @@
     b-partielle (Préciser l'arborescence d'où on part)
   3- Edition
 
+<<<<<<< Updated upstream
   4- Visualisation des droits
 
+=======
+<<<<<<< HEAD
+  4- Visulisation des droits
+=======
+  4- Visualisation des droits
+>>>>>>> master
+>>>>>>> Stashed changes
 
 
 
@@ -95,15 +103,37 @@ User connect : .....
     0 - Help
     1 - Quit the program
     2 - Change domaine
+<<<<<<< Updated upstream
     3 - Re-authentification
+=======
+    3 - Re-authentification
+<<<<<<< HEAD
+>>>>>>> Stashed changes
     4 - Save rights
     5 - Restoration
     6 - Rights edition
     7 - See the rights
+<<<<<<< Updated upstream
 =============================================
 
 
 SOUS-MENU : Save rights
+=======
+=============================================
+
+
+SOUS-MENU : Save rights
+=======
+    4 - Sauvegarde
+    5 - Restauration
+    6 - Edition
+    7 - Visualisation
+=============================================
+
+
+SOUS-MENU : Sauvegarde
+>>>>>>> master
+>>>>>>> Stashed changes
 =============================================
               SAVE RIGHTS
 =============================================
@@ -129,6 +159,7 @@ You have save the rights from ..... at ...
 
 
 SOUS-MENU : Restoration
+<<<<<<< Updated upstream
 =============================================
               RESTORATION
 =============================================
@@ -165,3 +196,9 @@ Enter a directory: ....
 Would you restore this object(1) or with his under object(2) =>..
 
 Your restoration is done
+=======
+
+=============================================
+              RESTORATION
+=============================================
+>>>>>>> Stashed changes
