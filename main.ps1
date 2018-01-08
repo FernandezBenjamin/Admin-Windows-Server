@@ -1,4 +1,4 @@
-﻿ #Allow the script execution
+﻿#Allow the script execution
 Set-ExecutionPolicy Unrestricted
 
  #Import Active Directory Module
@@ -443,6 +443,7 @@ Function backup{
   }
 }
 
+#================ FONCTION ADD ACL================#
 
 
 Function Get-ADSIOU
@@ -587,6 +588,7 @@ Set-Acl -Path $path -AclObject $acl
 }
 
 
+
 #============================# MAIN #============================#
 
 TestUserCredentials
@@ -674,7 +676,7 @@ do{
           }
         #2 - Add an ACL
           2{
-                add_acl
+
           }
         #3 - Help
           3{
