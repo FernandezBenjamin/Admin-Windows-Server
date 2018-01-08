@@ -156,9 +156,9 @@ Function footer{
 
 # Main menu
 Function menuMain{
-    $choice = 1
     $min = 1
     $max = 7
+    $choice = $min
     do{
         cls #clean the screen
         if( $choice -lt $min -or $choice -gt $max){
@@ -182,12 +182,13 @@ Function menuMain{
 
 # Backup Menu
 Function menuBackup{
-  $choice = 0
+
   $min = 0
   $max = 3
+  $choice = $min
   do{
     cls #clean the screen
-    if( $choice -lt 0 -or $choice -gt 3){
+    if( $choice -lt $min -or $choice -gt $max){
        mess_error -error_mess "You enter a wrong value ($choice)" -help_mess "Please enter a value between 0 and 3. Enter '3' for help"
     }
     header("MENU : SAVE THE RIGHT ENVIRONMENT")
@@ -204,15 +205,16 @@ Function menuBackup{
 
 # Display right menu
 Function menuDisplayRight{
-  $choice = 1
+
   $min = 0
   $max = 2
+  $choice = $min
   do{
     cls #clean the screen
-    if( $choice -lt 0 -or $choice -gt 2){
+    if( $choice -lt $min -or $choice -gt $emax){
        mess_error -error_mess "You enter a wrong value ($choice)" -help_mess "Please enter a value between 0 and 3. Enter '3' for help"
     }
-    headerMenu("MENU : DISPLAY THE RIGHT")
+    header("MENU : DISPLAY THE RIGHT")
     Write-Host "`t0 - Return"
     Write-Host "`t1 - Enter the distinguished name"
     Write-Host "`t2 - Help"
@@ -224,12 +226,13 @@ Function menuDisplayRight{
 
 # Restoration menu
 Function menuRestoration{
-  $choice = 1
+
   $min = 0
   $max = 3
+  $choice = $min
   do{
     cls #clean the screen
-    if( $choice -lt 0 -or $choice -gt 3){
+    if( $choice -lt $min -or $choice -gt $max){
        mess_error -error_mess "You enter a wrong value ($choice)" -help_mess "Please enter a value between 0 and 3. Enter '3' for help"
     }
     header("MENU : RESTORATATION OF THE RIGHT ENVIRONMENT")
@@ -245,9 +248,10 @@ Function menuRestoration{
 
 # Edit an organization unityt manu
 Function menuEdit{
-  $choice = 1
+
   $min = 0
   $max = 3
+  $choice = $min
   do{
     cls #clean the screen
     if( $choice -lt $min -or $choice -gt $max){
@@ -267,9 +271,10 @@ Function menuEdit{
 #============================# ALL FUNCTIONS HELP #============================#
 
 Function helpMainMenu{
-  $choice = 1
+
   $min = 0
   $max = 0
+  $choice = $min
   do{
     cls #clean the screen
     if( $choice -lt $min -or $choice -gt $max){
@@ -297,9 +302,10 @@ Function helpMainMenu{
 }
 
 Function helpBackupMenu{
-  $choice = 1
+
   $min = 0
   $max = 0
+  $choice = $min
   do{
     cls #clean the screen
     if( $choice -lt $min -or $choice -gt $max){
@@ -319,9 +325,9 @@ Function helpBackupMenu{
 }
 
 Function helpDisplayRightMenu{
-  $choice = 1
   $min = 0
   $max = 0
+  $choice = $min
   do{
     cls #clean the screen
     if( $choice -lt $min -or $choice -gt $max){
@@ -340,9 +346,9 @@ Function helpDisplayRightMenu{
 }
 
 Function helpRestorationMenu{
-  $choice = 1
   $min = 0
   $max = 0
+  $choice = $min
   do{
     cls #clean the screen
     if( $choice -lt $min -or $choice -gt $max){
@@ -363,9 +369,9 @@ Function helpRestorationMenu{
 }
 
 Function helpEditMenu{
-  $choice = 1
   $min = 0
   $max = 0
+  $choice = $min
   do{
     cls #clean the screen
     if( $choice -lt $min -or $choice -gt $max){
