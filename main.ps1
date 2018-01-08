@@ -814,7 +814,7 @@ $input = Read-Host -prompt "write to Ou name affected"
 
 
 $right = 13
-while($right -gt 6 -and $right -lt 0)
+while($right -gt 6 -or $right -lt 0)
 {
     echo "What kind of right do you want to set"
     echo "1- Modify"
@@ -852,6 +852,8 @@ $concat = "$Global:DOMAIN\$Global:USER"
 $ace = New-Object Security.AccessControl.ActiveDirectoryAccessRule($concat,$colsRights)
 $acl.AddAccessRule($ace)
 Set-Acl -Path $path -AclObject $acl
+
+
 
 }
 
@@ -965,3 +967,5 @@ do{
 
 
 Write-Host " Good Bye !"
+
+#PLOP
