@@ -308,21 +308,21 @@ foreach($Child in $Childs){
 
 
     Write-Host $Child.distinguishedName
-    
+
     $Header = $Child.distinguishedName
-    
+
     Add-Content -Value $Header -Path $OutFile
 
-    
+
     $Header = "IdentityReference,AccessControlType,IsInherited"
-    Add-Content -Value $Header -Path $OutFile 
-    
+    Add-Content -Value $Header -Path $OutFile
 
 
-    
-     
+
+
+
     (Get-Acl $Child.DistinguishedName).access | ft identityreference, accesscontroltype, isinherited -autosize
-    
+
      $ACLs = Get-Acl $Child.DistinguishedName | ForEach-Object {$_.access}
 
 
@@ -346,13 +346,13 @@ foreach($Child in $Childs){
         } else {
             $OutInfo = "$OutInfo, False"
         }
-        
+
 
 
 	    Add-Content -Value $OutInfo -Path $OutFile
 	}
 
-    
+
 }
 
 
@@ -367,7 +367,7 @@ Function Get-ADSIOU
     $objSearcher.Filter = '(objectCategory=organizationalUnit)'
 
     $OU = $objSearcher.FindAll() | Select-object -ExpandProperty Path
-    
+
     $OU
 }
 
@@ -379,10 +379,10 @@ Function Get-ADUsers
     $de = new-object system.directoryservices.directoryentry
     $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
     $complist = $ads.findall()
-    foreach ($i in $complist) 
+    foreach ($i in $complist)
     {
         write-host $i.Path
-        
+
     }
 }
 
@@ -395,14 +395,14 @@ Function Get-ADGroups
     $de = new-object system.directoryservices.directoryentry
     $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
     $complist = $ads.findall()
-    foreach ($i in $complist) 
+    foreach ($i in $complist)
     {
         write-host $i.Path
         if([boolean]( $i.Path.memberof  -match ($Groupes -join '|')) )
         {
             echo "Ce groupe fais partie des Administrateurs"
         }
-        
+
     }
 }
 
@@ -413,10 +413,10 @@ Function Get-ADComputers
     $de = new-object system.directoryservices.directoryentry
     $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
     $complist = $ads.findall()
-    foreach ($i in $complist) 
+    foreach ($i in $complist)
     {
         write-host $i.Path
-        
+
     }
 }
 
@@ -475,23 +475,23 @@ while($right -gt 6 -and $right -lt 0)
 
     if($right -eq 1)
     {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Modify" 
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Modify"
     }
     elseif($right -eq 2)
-    {        
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Write, Read" 
+    {
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Write, Read"
     }
     elseif($right -eq 3)
     {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"ReadAndExecute" 
+        $colRights = [System.Security.AccessControl.FileSystemRights]"ReadAndExecute"
     }
     elseif($right -eq 4)
     {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Write" 
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Write"
     }
     elseif($right -eq 5)
     {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Fullcontrol" 
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Fullcontrol"
     }
 }
 
@@ -509,12 +509,12 @@ while($inheritance -gt 4 -and $inheritance -lt 0)
         $InheritanceFlag = [System.Security.AccessControl.InheritanceFlags]::ContainerInherit
     }
     elseif($inheritance -eq 2)
-    { 
-        $InheritanceFlag = [System.Security.AccessControl.InheritanceFlags]::ObjectInherit 
+    {
+        $InheritanceFlag = [System.Security.AccessControl.InheritanceFlags]::ObjectInherit
     }
     elseif($inheritance -eq 3)
     {
-        $InheritanceFlag = [System.Security.AccessControl.InheritanceFlags]::None 
+        $InheritanceFlag = [System.Security.AccessControl.InheritanceFlags]::None
     }
 }
 
@@ -529,15 +529,15 @@ while($propagation -gt 4 -and $propagation -lt 0)
 
     if($propagation -eq 1)
     {
-        $PropagationFlag = [System.Security.AccessControl.PropagationFlags]::InheritOnly 
+        $PropagationFlag = [System.Security.AccessControl.PropagationFlags]::InheritOnly
     }
     elseif($propagation -eq 2)
-    { 
+    {
         $PropagationFlag = [System.Security.AccessControl.PropagationFlags]::NoPropagateInherit
     }
     elseif($propagation -eq 3)
     {
-        $PropagationFlag = [System.Security.AccessControl.PropagationFlags]::None  
+        $PropagationFlag = [System.Security.AccessControl.PropagationFlags]::None
     }
 }
 
@@ -551,10 +551,10 @@ while($type -gt 3 -and $type -lt 0)
 
     if($type -eq 1)
     {
-        $objType =[System.Security.AccessControl.AccessControlType]::Allow 
+        $objType =[System.Security.AccessControl.AccessControlType]::Allow
     }
     elseif($type -eq 2)
-    { 
+    {
        $objType =[System.Security.AccessControl.AccessControlType]::Deny
     }
 }
@@ -562,19 +562,13 @@ while($type -gt 3 -and $type -lt 0)
 $concat = "$Global:DOMAIN\$Global:user"
 
 
-$objUser = New-Object System.Security.Principal.NTAccount("Winserv0\Administrateur") 
+$objUser = New-Object System.Security.Principal.NTAccount("Winserv0\Administrateur")
 
 
 
 }
 
 
-
-
-
-
-<<<<<<< HEAD
-=======
 
 Function Get-ADSIOU
 {
@@ -584,7 +578,7 @@ Function Get-ADSIOU
     $objSearcher.Filter = '(objectCategory=organizationalUnit)'
 
     $OU = $objSearcher.FindAll() | Select-object -ExpandProperty Path
-    
+
     $OU
 }
 
@@ -596,10 +590,10 @@ Function Get-ADUsers
     $de = new-object system.directoryservices.directoryentry
     $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
     $complist = $ads.findall()
-    foreach ($i in $complist) 
+    foreach ($i in $complist)
     {
         write-host $i.Path
-        
+
     }
 }
 
@@ -612,14 +606,14 @@ Function Get-ADGroups
     $de = new-object system.directoryservices.directoryentry
     $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
     $complist = $ads.findall()
-    foreach ($i in $complist) 
+    foreach ($i in $complist)
     {
         write-host $i.Path
         if([boolean]( $i.Path.memberof  -match ($Groupes -join '|')) )
         {
             echo "Ce groupe fais partie des Administrateurs"
         }
-        
+
     }
 }
 
@@ -630,10 +624,10 @@ Function Get-ADComputers
     $de = new-object system.directoryservices.directoryentry
     $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
     $complist = $ads.findall()
-    foreach ($i in $complist) 
+    foreach ($i in $complist)
     {
         write-host $i.Path
-        
+
     }
 }
 
@@ -688,23 +682,23 @@ while($right -gt 6 -and $right -lt 0)
 
     if($right -eq 1)
     {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Modify" 
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Modify"
     }
     elseif($right -eq 2)
-    {        
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Write, Read" 
+    {
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Write, Read"
     }
     elseif($right -eq 3)
     {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"ReadAndExecute" 
+        $colRights = [System.Security.AccessControl.FileSystemRights]"ReadAndExecute"
     }
     elseif($right -eq 4)
     {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Write" 
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Write"
     }
     elseif($right -eq 5)
     {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Fullcontrol" 
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Fullcontrol"
     }
 }
 
@@ -728,7 +722,7 @@ Function Get-ADSIOU
     $objSearcher.Filter = '(objectCategory=organizationalUnit)'
 
     $OU = $objSearcher.FindAll() | Select-object -ExpandProperty Path
-    
+
     $OU
 }
 
@@ -740,10 +734,10 @@ Function Get-ADUsers
     $de = new-object system.directoryservices.directoryentry
     $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
     $complist = $ads.findall()
-    foreach ($i in $complist) 
+    foreach ($i in $complist)
     {
         write-host $i.Path
-        
+
     }
 }
 
@@ -756,14 +750,14 @@ Function Get-ADGroups
     $de = new-object system.directoryservices.directoryentry
     $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
     $complist = $ads.findall()
-    foreach ($i in $complist) 
+    foreach ($i in $complist)
     {
         write-host $i.Path
         if([boolean]( $i.Path.memberof  -match ($Groupes -join '|')) )
         {
             echo "Ce groupe fais partie des Administrateurs"
         }
-        
+
     }
 }
 
@@ -774,10 +768,10 @@ Function Get-ADComputers
     $de = new-object system.directoryservices.directoryentry
     $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
     $complist = $ads.findall()
-    foreach ($i in $complist) 
+    foreach ($i in $complist)
     {
         write-host $i.Path
-        
+
     }
 }
 
@@ -832,23 +826,23 @@ while($right -gt 6 -and $right -lt 0)
 
     if($right -eq 1)
     {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Modify" 
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Modify"
     }
     elseif($right -eq 2)
-    {        
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Write, Read" 
+    {
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Write, Read"
     }
     elseif($right -eq 3)
     {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"ReadAndExecute" 
+        $colRights = [System.Security.AccessControl.FileSystemRights]"ReadAndExecute"
     }
     elseif($right -eq 4)
     {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Write" 
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Write"
     }
     elseif($right -eq 5)
     {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Fullcontrol" 
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Fullcontrol"
     }
 }
 
@@ -927,8 +921,7 @@ do{
     }
   #4 - Modify the right environment
     4{
-<<<<<<< HEAD
-=======
+
       do{
         switch(menuEdit){
         #1 - Modify an ACL
