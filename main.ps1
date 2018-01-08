@@ -211,7 +211,7 @@ Function menuDisplayRight{
   $choice = $min
   do{
     cls #clean the screen
-    if( $choice -lt $min -or $choice -gt $emax){
+    if( $choice -lt $min -or $choice -gt $max){
        mess_error -error_mess "You enter a wrong value ($choice)" -help_mess "Please enter a value between 0 and 3. Enter '3' for help"
     }
     header("MENU : DISPLAY THE RIGHT")
@@ -220,7 +220,7 @@ Function menuDisplayRight{
     Write-Host "`t2 - Help"
     footer
     $choice = Read-Host -Prompt "What do you want to do?"
-  }while($choice -lt 0 -or $choice -gt 3)
+  }while($choice -lt $min -or $choice -gt $max)
   return $choice;
 }
 
