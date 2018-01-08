@@ -539,7 +539,7 @@ do{
           }
         #0 - Return
           default{
-            $againSubMenu
+            $againSubMenu = 0
           }
         }
       }while($againSubMenu -eq 1)
