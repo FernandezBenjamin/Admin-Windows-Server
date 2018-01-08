@@ -1,7 +1,6 @@
-Function Set-OUAcl
+Function Add_ACL
 {
-
-    echo "These are the differents organizationalunits on this domain"
+    write-host "These are the differents Organizational Units on this domain"
     $objDomain = New-Object System.DirectoryServices.DirectoryEntry
 
 
@@ -28,111 +27,25 @@ Function Set-OUAcl
             $objComputer = $objResult.Properties;
 
             $name = $objComputer.name
-            write-host "$cpt - " -nonewline
-            $name
+            write-host "$cpt - $name"
 
             $cpt = $cpt + 1
         }
-    echo "------------------------------------"
-    echo "------------------------------------"
-    echo "Please select a number in the list of organizationalunits "
-    $select = Read-Host ">>> "
-    while($select -ge $cpt -and $select -lt -1)#Remplacer valeurs dans comparaison par nombre d'objet dans la liste
-        {
-            echo "ERROR : Wrong selection, please enter a number that is in the list "
-            $select = Read-Host ">>> "
-        }
+    write-host "------------------------------------"
+    write-host "------------------------------------"
+    write-host "Please write the name of the Organizational Unit you want"
+    $input = Read-Host ">>> "
 
-    $colResults = $objSearcher.FindAll()
-
-    $cpt = 0
-    foreach ($objResult in $colResults)
-        {
-            $objComputer = $objResult.Properties;
-
-            $name = $objComputer.name
-            if($cpt -eq $select)
-                {
-                    $SelectedOU = $name
-                    $SelectedOU
-                }
-
-            $cpt = $cpt + 1
-        }
-
-#Recuperation de l'OU sélectionnée
-Try{
-        $ou = Get-ADOrganizationalUnit -Identity ("OU=$SelectedOU,"+$domain.DistinguishedName)
+    Try{
+        $ou = Get-ADOrganizationalUnit -Identity ("OU=$input,"+$domain.DistinguishedName)
     }
     Catch{
         Write-Host "Error: OU was not found: " $_.Exception.Message -BackgroundColor Black -ForegroundColor Red
         Break
     }
-    #Recuperation des SID de chaque groupe sur lesquels on veut agir
-    echo "------------------------------------"
-    echo "------------------------------------"
-    echo "This is a list of all the groups of the domain"
 
-    $objDomain = New-Object System.DirectoryServices.DirectoryEntry
-
-
-    $objSearcher = New-Object System.DirectoryServices.DirectorySearcher
-
-    $objSearcher.SearchRoot = $objDomain
-
-    $objSearcher.Filter = ("(objectCategory=group)")
-
-
-    $colProplist = "name"
-
-    foreach ($i in $colPropList)
-        {
-            $objSearcher.PropertiesToLoad.Add($i)
-        }
-
-
-    $colResults = $objSearcher.FindAll()
-
-    $cpt = 0
-    foreach ($objResult in $colResults)
-        {
-            $objComputer = $objResult.Properties;
-
-            $name = $objComputer.name
-            write-host "$cpt - " -nonewline
-            $name
-
-            $cpt = $cpt + 1
-        }
-    echo "------------------------------------"
-    echo "------------------------------------"
-    echo "Please select a number in the list of groups "
-    $select = Read-Host ">>> "
-    while($select -ge $cpt -and $select -lt -1)#Remplacer valeurs dans comparaison par nombre d'objet dans la liste
-        {
-            echo "ERROR : Wrong selection, please enter a number that is in the list "
-            $select = Read-Host ">>> "
-        }
-
-    $colResults = $objSearcher.FindAll()
-
-    $cpt = 0
-    foreach ($objResult in $colResults)
-        {
-            $objComputer = $objResult.Properties;
-
-            $name = $objComputer.name
-            if($cpt -eq $select)
-                {
-                    $idGroups = New-Object System.Security.Principal.SecurityIdentifier (Get-ADGroup "$name").SID
-                }
-
-            $cpt = $cpt + 1
-        }
-
-
-    #Get a copy of the current DACL on the OU
     Try{
+        write-host "Recuperation des donnees de l'OU $input"
         $objACL = Get-ACL -Path ($ou.DistinguishedName)
         }
     Catch{
@@ -140,69 +53,97 @@ Try{
         Break
     }
 
-
-    #Lister les droits et permettre la selection de plusieurs d'entre eux
-    echo "Quel droit voulez vous appliquer a l'ACL (respectez la casse) ?"
-    echo "Read"
-    echo "Write"
-    echo "Delete"
-    echo "ExecuteFile"
-    echo "CreateFiles"
-    echo "CreateDirectories"
-    echo "Veuillez selectionner un droit a appliquer"
-    $rights = Read-Host ">>> "
-
-    echo "Quel droit voulez vous appliquer a l'ACL (respectez la casse) ?"
-    while($select -ne -1)
+$right = 1
+while($right -gt 0 -and $right -lt 11)
+{
+    write-host "1- Read"
+    write-host "2- Write"
+    write-host "3- Read and write"
+    write-host "4- ExecuteFile"
+    write-host "5- Read and execute"
+    write-host "6- Delete"
+    write-host "7- Modify"
+    write-host "8- CreateFiles"
+    write-host "9- CreateDirectories"
+    write-host "10- Full control"
+    write-host "11- Stop"
+    $right=Read-Host ">>> "
+    $cptr = 0
+    $cptwr = 0
+    $cptrwr = 0
+    $cptex = 0
+    $cptrex = 0
+    $cptdel = 0
+    $cptmodif = 0
+    $cptcrea = 0
+    $cptcreadir = 0
+    $cptfullc = 0
+    if($right -eq 1 -and $cptr -eq 0)
     {
-        echo "Read"
-        echo "Write"
-        echo "Delete"
-        echo "ExecuteFile"
-        echo "CreateFiles"
-        echo "CreateDirectories"
-        echo "Veuillez selectionner un droit a appliquer (-1 pour quitter)"
-        $select = Read-Host ">>> "
-        if($select -ne -1)
-            {
-                $rights = $rights + ",$select"
-            }
-        else
-            {
-                $rights = $rights + $select
-            }
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Read"
+        $cptr = $cptr + 1 
     }
+    elseif($right -eq 2 -and $cptwr -eq 0)
+    {        
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Write" 
+        $cptwr = $cptwr + 1
+    }
+    elseif($right -eq 3 -and $cptrwr -eq 0)
+    {        
+        $colRights = [System.Security.AccessControl.FileSystemRights]"ReadAndWrite" 
+        $cptrwr = $cptrwr + 1
+    }
+    elseif($right -eq 4 -and $cptex -eq 0)
+    {        
+        $colRights = [System.Security.AccessControl.FileSystemRights]"ExecuteFile" 
+        $cptex = $cptex + 1
+    }
+    elseif($right -eq 5 -and $cptrex -eq 0)
+    {        
+        $colRights = [System.Security.AccessControl.FileSystemRights]"ReadAndExecute"
+        $cptrex = $cptrex + 1 
+    }
+    elseif($right -eq 6 -and $cptdel -eq 0)
+    {        
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Delete"
+        $cptdel = $cptdel + 1 
+    }
+    elseif($right -eq 7 -and $cptmodif -eq 0)
+    {
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Modify"
+        $cptmodif = $cptmodif + 1 
+    }
+    elseif($right -eq 8 -and $cptcrea -eq 0)
+    {
+        $colRights = [System.Security.AccessControl.FileSystemRights]"CreateFiles"
+        $cptcrea = $cptcrea + 1 
+    }
+    elseif($right -eq 9 -and $cptcreadir -eq 0)
+    {
+        $colRights = [System.Security.AccessControl.FileSystemRights]"CreateDirectories" 
+        $cptcreadir = $cptcreadir + 1
+    }
+    elseif($right -eq 10 -and $cptfullc -eq 0)
+    {
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Fullcontrol" 
+        $cptfullc = $cptfullc + 1
+        $right = 11
+    }
+}
 
-    echo "Les droits que vous avez choisis sont :"
-    $rights
-
-    $colRights = [System.Security.AccessControl.FileSystemRights]"Fullcontrol" #Pouvoir mettre un $rights
-
-    $InheritanceFlag = [System.Security.AccessControl.InheritanceFlags]::None 
-    $PropagationFlag = [System.Security.AccessControl.PropagationFlags]::None 
-
-    #Allow dans la plupart des cas mais Deny peut desactiver des ACE
-    $objType =[System.Security.AccessControl.AccessControlType]::Allow 
-
-    #Doit comporter les identifiants de connexion du compte qui execute le script
-    $objUser = New-Object System.Security.Principal.NTAccount("esgi.priv\Administrateur")
-
-    #BONUS EVENTUEL : Ajouter des groupes dans l'ACL avec des droits spéciaux (ici Reset Password)
-    #echo "Test d'affichage de stockage d'objet SID"
-    #foreach($idGroup in $idGroups)
-    #    {
-    #        $idGroup
-    #        $objACL.AddAccessRule((New-Object System.DirectoryServices.ActiveDirectoryAccessRule `
-    #        $idGroup,"ExtendedRight","Allow",$extendedrightsmap["Reset Password"],"Descendents",$guidmap["user"]))
-    #    } 
-
-    $objACE = New-Object System.Security.AccessControl.FileSystemAccessRule `
-    ($objUser, $colRights, $InheritanceFlag, $PropagationFlag, $objType) 
- 
-    $objACL.AddAccessRule($objACE) 
-
-    #Re-apply the modified DACL to the OU
-    Set-ACL -ACLObject $objACL -Path ("AD:\"+($ou.DistinguishedName))
-
-#Allow the group to reset user passwords on all descendent user objects
+    $path = $input
+    $acl = Get-Acl -Path $path
+    $concat = "$Global:DOMAIN\$Global:USER"
+    $ace = New-Object Security.AccessControl.ActiveDirectoryAccessRule($concat,$colsRights)
+    $acl.AddAccessRule($ace)
+    Try
+    {
+        Set-ACL -ACLObject $acl -Path ("AD:\"+($ou.DistinguishedName))
+    }
+    Catch
+    {
+        Write-Host "Error: Set-ACL didn't work: " $_.Exception.Message -BackgroundColor Black -ForegroundColor Red
+        Break
+    }
+    $input = Read-Host "..."
 }
