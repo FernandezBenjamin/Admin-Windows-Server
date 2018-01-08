@@ -1,4 +1,4 @@
-﻿ #Allow the script execution
+﻿#Allow the script execution
 Set-ExecutionPolicy Unrestricted
 
  #Import Active Directory Module
@@ -716,6 +716,151 @@ $acl.AddAccessRule($ace)
 Set-Acl -Path $path -AclObject $acl
 
 }
+
+#================ FONCTION ADD ACL================#
+
+
+Function Get-ADSIOU
+{
+    # Renvoie toutes les OU du domaine courrant
+    $objDomain = [ADSI]''
+    $objSearcher = New-Object System.DirectoryServices.DirectorySearcher($objDomain)
+    $objSearcher.Filter = '(objectCategory=organizationalUnit)'
+
+    $OU = $objSearcher.FindAll() | Select-object -ExpandProperty Path
+    
+    $OU
+}
+
+Function Get-ADUsers
+{
+    echo "**** Utilisateurs du domaine*****"
+
+    $ldapQuery = "(&(objectCategory=user))"
+    $de = new-object system.directoryservices.directoryentry
+    $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
+    $complist = $ads.findall()
+    foreach ($i in $complist) 
+    {
+        write-host $i.Path
+        
+    }
+}
+
+Function Get-ADGroups
+{
+    echo "**** Groupes du domaine*****"
+
+    $Groupes = 'Administrateur','Admin','Administrateurs','Admins'
+    $ldapQuery = "(&(objectCategory=group))"
+    $de = new-object system.directoryservices.directoryentry
+    $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
+    $complist = $ads.findall()
+    foreach ($i in $complist) 
+    {
+        write-host $i.Path
+        if([boolean]( $i.Path.memberof  -match ($Groupes -join '|')) )
+        {
+            echo "Ce groupe fais partie des Administrateurs"
+        }
+        
+    }
+}
+
+Function Get-ADComputers
+{
+    echo "**** Ordinateurs du domaine*****"
+    $ldapQuery = "(&(objectCategory=computer))"
+    $de = new-object system.directoryservices.directoryentry
+    $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
+    $complist = $ads.findall()
+    foreach ($i in $complist) 
+    {
+        write-host $i.Path
+        
+    }
+}
+
+function add_acl{
+$saisie = 2
+while($saisie -lt 6 -and $saisie -gt 0)
+{
+    echo "******MENU******"
+    echo "1- Get-ADUsers"
+    echo "2- Get-ADComputers"
+    echo "3- Get-ADGroups"
+    echo "4- Get-ADSIOU"
+    echo "5- Leave the script"
+    $saisie=Read-Host ">>> "
+
+    if($saisie -eq 1)
+    {
+        Get-ADUsers
+    }
+    elseif($saisie -eq 2)
+    {
+        Get-ADComputers
+    }
+    elseif($saisie -eq 3)
+    {
+        Get-ADGroups
+    }
+    elseif($saisie -eq 4)
+    {
+        Get-ADSIOU
+    }
+    elseif($saisie -eq 5)
+    {
+        $saisie = 0
+    }
+}
+
+$input = Read-Host -prompt "write to Ou name affected"
+
+
+
+$right = 13
+while($right -gt 6 -and $right -lt 0)
+{
+    echo "What kind of right do you want to set"
+    echo "1- Modify"
+    echo "2- Read and write"
+    echo "3- Read and execute"
+    echo "4- Write"
+    echo "5- Full control"
+    $right=Read-Host ">>> "
+
+    if($right -eq 1)
+    {
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Modify" 
+    }
+    elseif($right -eq 2)
+    {        
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Write, Read" 
+    }
+    elseif($right -eq 3)
+    {
+        $colRights = [System.Security.AccessControl.FileSystemRights]"ReadAndExecute" 
+    }
+    elseif($right -eq 4)
+    {
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Write" 
+    }
+    elseif($right -eq 5)
+    {
+        $colRights = [System.Security.AccessControl.FileSystemRights]"Fullcontrol" 
+    }
+}
+
+$path = $input
+$acl = Get-Acl -Path $path
+$concat = "$Global:DOMAIN\$Global:USER"
+$ace = New-Object Security.AccessControl.ActiveDirectoryAccessRule($concat,$colsRights)
+$acl.AddAccessRule($ace)
+Set-Acl -Path $path -AclObject $acl
+
+}
+
 
 
 #============================# MAIN #============================#
