@@ -937,6 +937,7 @@ $ace = New-Object Security.AccessControl.ActiveDirectoryAccessRule($concat,$cols
 $acl.AddAccessRule($ace)
 Set-Acl -Path $path -AclObject $acl
 
+}
 
 
 #============================# MAIN #============================#
