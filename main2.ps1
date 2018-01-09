@@ -545,7 +545,7 @@ Function Add_ACL
         {
             $objComputer = $objResult.Properties;
             $name = $objComputer.name
-            write-host "$cpt - $name " 
+            write-host "$cpt - $name "
 
             $cpt = $cpt + 1
         }
@@ -570,7 +570,7 @@ Function Add_ACL
         {
             $objComputer = $objResult.Properties;
             $name = $objComputer.name
-            write-host "$cpt - $name " 
+            write-host "$cpt - $name "
 
             $cpt = $cpt + 1
         }
@@ -615,21 +615,13 @@ while($right -gt 0 -and $right -lt 11)
         $rightype = "Deny"
     }
 
-<<<<<<< Updated upstream
+
     write-host "Here are different rights you can choose to apply on these groups"
-    if($cptr -eq 0){write-host "1- Read"}
-    if($cptwr -eq 0){write-host "2- Write"}
-    if($cptrwr -eq 0){write-host "3- Read and write"}
-    if($cptex -eq 0){write-host "4- ExecuteFile"}
-    if($cptrex -eq 0){write-host "5- Read and execute"}
-=======
-    write-host "Here are different rights you can choose to apply on these groups" 
     if($cptr -eq 0){write-host "1- GenericRead"}
     if($cptwr -eq 0){write-host "2- GenericWrite"}
     if($cptrwr -eq 0){write-host "3- ReadControl"}
     if($cptex -eq 0){write-host "4- GenericExecute"}
     if($cptrex -eq 0){write-host "5- ReadProperty"}
->>>>>>> Stashed changes
     if($cptdel -eq 0){write-host "6- Delete"}
     if($cptmodif -eq 0){write-host "7- DeleteChild"}
     if($cptcrea -eq 0){write-host "8- DeleteTree"}
@@ -642,13 +634,9 @@ while($right -gt 0 -and $right -lt 11)
     if($cptwrprop -eq 0){write-host "15- WriteProperty"}
     write-host "16- Stop"
     $right=Read-Host ">>> "
-<<<<<<< Updated upstream
 
-    if($right -ne 11 -and $cptchoose -gt 0)
-=======
-  
     if($right -ne 16 -and $cptchoose -gt 0)
->>>>>>> Stashed changes
+
     {
         write-host "Ajout VIRGULE"
         $colRights = "$colRights,"
@@ -656,7 +644,7 @@ while($right -gt 0 -and $right -lt 11)
 
     if($right -eq 1 -and $cptr -eq 0)
     {
-<<<<<<< Updated upstream
+
         $colRights = $colRights + "Read"
         $cptr = $cptr + 1
         $cptchoose = $cptchoose + 1
@@ -664,48 +652,44 @@ while($right -gt 0 -and $right -lt 11)
     elseif($right -eq 2 -and $cptwr -eq 0)
     {
         $colRights = $colRights + "Write"
-=======
         $colRights = $colRights + "GenericRead"
-        $cptr = $cptr + 1 
+        $cptr = $cptr + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 2 -and $cptwr -eq 0)
-    {        
-        $colRights = $colRights + "GenericWrite" 
->>>>>>> Stashed changes
+    {
+        $colRights = $colRights + "GenericWrite"
+
         $cptwr = $cptwr + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 3 -and $cptrwr -eq 0)
-<<<<<<< Updated upstream
+
     {
         $colRights = $colRights + "ReadAndWrite"
-=======
-    {        
-        $colRights = $colRights + "ReadControl" 
->>>>>>> Stashed changes
+    {
+        $colRights = $colRights + "ReadControl"
+
         $cptrwr = $cptrwr + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 4 -and $cptex -eq 0)
-<<<<<<< Updated upstream
+
     {
         $colRights = $colRights + "ExecuteFile"
-=======
-    {        
-        $colRights = $colRights + "GenericExecute" 
->>>>>>> Stashed changes
+    {
+        $colRights = $colRights + "GenericExecute"
+
         $cptex = $cptex + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 5 -and $cptrex -eq 0)
-<<<<<<< Updated upstream
+
     {
         $colRights = $colRights + "ReadAndExecute"
-=======
-    {        
+    {
         $colRights = $colRights + "ReadProperty"
->>>>>>> Stashed changes
+
         $cptrex = $cptrex + 1
         $cptchoose = $cptchoose + 1
     }
@@ -717,108 +701,103 @@ while($right -gt 0 -and $right -lt 11)
     }
     elseif($right -eq 7 -and $cptmodif -eq 0)
     {
-<<<<<<< Updated upstream
+
         $colRights = $colRights + "Modify"
         $cptmodif = $cptmodif + 1
-=======
         $colRights = $colRights + "DeleteChild"
-        $cptmodif = $cptmodif + 1 
->>>>>>> Stashed changes
+        $cptmodif = $cptmodif + 1
+
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 8 -and $cptcrea -eq 0)
     {
-<<<<<<< Updated upstream
+
         $colRights = $colRights + "CreateFiles"
         $cptcrea = $cptcrea + 1
-=======
         $colRights = $colRights + "DeleteTree"
-        $cptcrea = $cptcrea + 1 
->>>>>>> Stashed changes
+        $cptcrea = $cptcrea + 1
+
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 9 -and $cptcreadir -eq 0)
     {
-<<<<<<< Updated upstream
+
         $colRights = $colRights + "CreateDirectories"
-=======
-        $colRights = $colRights + "CreateChild" 
->>>>>>> Stashed changes
+        $colRights = $colRights + "CreateChild"
+
         $cptcreadir = $cptcreadir + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 10 -and $cptfullc -eq 0)
     {
-<<<<<<< Updated upstream
+
         $colRights = "Fullcontrol"
-=======
-        $colRights = $colRights + "WriteDacl" 
->>>>>>> Stashed changes
+        $colRights = $colRights + "WriteDacl"
+
         $cptfullc = $cptfullc + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 11 -and $cptAll -eq 0)
     {
-        $colRights = $colRights + "GenericAll" 
+        $colRights = $colRights + "GenericAll"
         $cptAll = $cptAll + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 12 -and $cptlistch -eq 0)
     {
-        $colRights = $colRights + "ListChildren" 
+        $colRights = $colRights + "ListChildren"
         $cptlistch = $cptlistch + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 13 -and $cptlistob -eq 0)
     {
-        $colRights = $colRights + "ListObject" 
+        $colRights = $colRights + "ListObject"
         $cptlistob = $cptlistob + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 14 -and $cptsynch -eq 0)
     {
-        $colRights = $colRights + "Synchronize" 
+        $colRights = $colRights + "Synchronize"
         $cptsynch = $cptsynch + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 15 -and $cptwrprop -eq 0)
     {
-        $colRights = $colRights + "WriteProperty" 
+        $colRights = $colRights + "WriteProperty"
         $cptwrprop = $cptwrprop + 1
         $cptchoose = $cptchoose + 1
     }
 }
 
-<<<<<<< Updated upstream
+
     write-host $colRights
     $acl.SetAccessRuleProtection($True, $False)
 
     write-host "Les groupes selectionnés sont :"
     foreach($grp in $groups)
-=======
-    #SchemaIDGuid for the Computer Class: bf967a86-0de6-11d0-a285-00aa003049e2 
+    #SchemaIDGuid for the Computer Class: bf967a86-0de6-11d0-a285-00aa003049e2
     #$ObjectGUID = New-Object -TypeName GUID -ArgumentList bf967a86-0de6-11d0-a285-00aa003049e2
     $ObjectGuid = [GUID]("bf967a86-0de6-11d0-a285-00aa003049e2")
 
     if($groups -ne $null)
->>>>>>> Stashed changes
+
     {
         foreach($grp in $groups)
         {
             $Arguments = $null
-            try { 
-                    $GroupSID = Get-ADGroup -Identity $grp -ErrorAction Stop | Select-Object -ExpandProperty SID 
-                } 
-            catch 
-                { 
-                    Write-Verbose -Message "Cannot find group: $grp, please supply the correct group name, now exiting." -Verbose 
+            try {
+                    $GroupSID = Get-ADGroup -Identity $grp -ErrorAction Stop | Select-Object -ExpandProperty SID
+                }
+            catch
+                {
+                    Write-Verbose -Message "Cannot find group: $grp, please supply the correct group name, now exiting." -Verbose
                     $inpustop = Read-Host " ..."
-                    break 
+                    break
                 }
             $Arguments = "$GroupSID,$colRights,$rightype,$ObjectGUID"
 
-            write-host $Arguments 
-            
+            write-host $Arguments
+
             Try
             {
                 $ACE = New-Object -TypeName System.DirectoryServices.ActiveDirectoryAccessRule($GroupSID,$colRights,$rightype,$ObjectGUID)
@@ -832,16 +811,12 @@ while($right -gt 0 -and $right -lt 11)
 
             $ADAcl.AddAccessRule($ACE)
         }
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
     }
 
 
     Try
     {
-        Set-ACL -Path $ADPath -ACLObject $ADAcl -Passthru -Verbose 
+        Set-ACL -Path $ADPath -ACLObject $ADAcl -Passthru -Verbose
     }
     Catch
     {
