@@ -9,6 +9,8 @@ Set-ExecutionPolicy Unrestricted
 $Global:DOMAIN = $null
 $Global:USER = $null
 $GLOBAL:CRED = $null
+$GLOBAL:ADPATH = $null
+
 #============================# FUNCTIONS CREDENTIAL #============================#
 
 #Clear User Info Function
@@ -446,8 +448,112 @@ Function backup{
   }
 }
 
+
+#============================# FUNCTION NAVIGATE #============================#
+#
+#LA FONCTION MODIFIE $GLOBAL:ADPATH A LA FIN DE SON EXECUTION
+
+Function Navigate
+{
+    $objDomain = New-Object System.DirectoryServices.DirectoryEntry
+
+
+    $objSearcher = New-Object System.DirectoryServices.DirectorySearcher
+
+    $objSearcher.SearchRoot = $objDomain
+
+    $objSearcher.Filter = ("(objectCategory=organizationalUnit)")
+
+
+    $colProplist = "name"
+
+    foreach ($i in $colPropList)
+        {
+            $objSearcher.PropertiesToLoad.Add($i)
+        }
+
+    write-host "Here are the differents Organizational Units of the Domain : $Global:DOMAIN"
+    write-host "------------------------------------"
+
+    $colResults = $objSearcher.FindAll()
+    $cpt = 0
+    foreach ($objResult in $colResults)
+        {
+            $objComputer = $objResult.Properties;
+
+            $name = $objComputer.name
+            write-host "$cpt -> $name"
+            $cpt = $cpt + 1
+        }
+    write-host "------------------------------------"
+    write-host "Please write the number of the Organizational Unit you want"
+    $nb_ou = Read-Host ">>> "
+    $cpt = 0
+    foreach ($objResult in $colResults)
+        {
+            $objComputer = $objResult.Properties;
+
+            $name = $objComputer.name
+            if($cpt -eq $nb_ou)
+            {
+                $input = $name
+                $LDAPway = $objResult.Path
+            }
+            $cpt = $cpt + 1
+        }
+
+    $stop = 0
+    while($stop -eq 0)
+    {
+        write-host "Here are the childs of the Organizational Unit you selected : $input"
+        write-host "------------------------------------"
+        $nb_char = $LDAPway.Length
+
+        $OUdef = $LDAPway.Substring(7,$nb_char-7)
+        $ADPath = "AD:\$OUdef"
+        $OU_childs = Get-ChildItem -Path $ADPath
+
+        $cpt = 0
+        foreach($ou_child in $OU_childs)
+        {
+            $name = $ou_child.name
+            write-host "$cpt -> $name"
+            write-host $ou_child
+            $cpt = $cpt + 1
+        }
+        write-host "-1 -> QUIT"
+        write-host "------------------------------------"
+        $nb_ou = Read-Host "Select your number "
+        if($nb_ou -eq -1){$stop = 1}
+        $cpt = 0
+        foreach ($ou_child in $OU_childs)
+            {
+                $ou_chil = $ou_child.Properties;
+
+                if($cpt -eq $nb_ou)
+                {
+                    $tmp = $ou_child.name
+                    $input = "$input >> $tmp"
+                    $LDAPway = "LDAP://$ou_child"
+                }
+                $cpt = $cpt + 1
+            }
+    }
+
+    $Global:ADPATH = $ADPath.ToString()
+}
+
+
+
+#============================# FUNCTION AJOUT ACE DANS ACL #============================#
+
+
 Function Add_ACL
 {
+$way = Navigate
+$temp = $way
+$way.remove(0,2)
+write-host $temp
     write-host "These are the differents Organizational Units on this domain"
     $objDomain = New-Object System.DirectoryServices.DirectoryEntry
 
@@ -495,8 +601,6 @@ Function Add_ACL
             $cpt = $cpt + 1
         }
 
-    write-host "OU choisis : $input - $LDAPway"
-
 
     $nb_char = $LDAPway.Length
 
@@ -517,7 +621,8 @@ Function Add_ACL
     }
 
     Try{
-        $objACL = (Get-Acl -Path $ADPath).Access | ? ActiveDirectoryRights 
+        $objACL = (Get-Acl -Path $ADPath).Access | ? ActiveDirectoryRights
+        $objACL.ActiveDirectoryRights 
         }
     Catch{
         Write-Host "Error: ACL was not found in OU: " $_.Exception.Message -BackgroundColor Black -ForegroundColor Red
@@ -537,82 +642,52 @@ Function Add_ACL
             $objSearcher.PropertiesToLoad.Add($i)
         }
 
-    $colResults = $objSearcher.FindAll()
+    $groups = $objSearcher.FindAll()
 
     $cpt = 0
-    write-host "Voici les differents groupes présents dans cette OU :"
-    foreach ($objResult in $colResults)
+    write-host "Here are the differents groups member of this OU"
+    foreach ($group in $groups)
         {
-            $objComputer = $objResult.Properties;
-            $name = $objComputer.name
+            $objgroup = $group.Properties;
+            $name = $objgroup.name
             write-host "$cpt - $name " 
 
             $cpt = $cpt + 1
         }
-
-    #$objDomaine=[ADSI]$LDAPway
-    #$objRecherche = new-object system.DirectoryServices.DirectorySearcher($objDomaine)
-    #$objRecherche.Filter="(&(objectCategory=group))"
-    #$objResult = $objRecherche.FindAll()
-    #$nb_group = 0
-    #foreach($objRes in $objResult)
-    #{
-    #    $nb_group = $nb_group + 1
-    #}
-    $choice = 0
-    write-host "Write the name of the groups of the Organizational Unit you want to apply the new rights on"
-    write-host "(Type END to stop)"
-    $nb_group = 1
-    while($choice -ne "END")
-    {
-        $cpt = 0
-        foreach ($objResult in $colResults)
-        {
-            $objComputer = $objResult.Properties;
-            $name = $objComputer.name
-            write-host "$cpt - $name " 
-
-            $cpt = $cpt + 1
-        }
-        $choice = Read-Host ">>> "
-        if($choice -ne "END")
-        {
-            $groups = $groups + $choice
-            $nb_group = $nb_group + 1
-        }
-    }
 
     write-host "Do you want to Allow or Deny the next selection ?"
     $rightType = Read-Host "1- Allow | 2- Deny  >>> "
 
+
+$cptr = 0
+$cptwr = 0
+$cptrwr = 0
+$cptex = 0
+$cptrex = 0
+$cptdel = 0
+$cptmodif = 0
+$cptcrea = 0
+$cptcreadir = 0
+$cptfullc = 0
+$cptAll = 0
+$cptlistch = 0
+$cptlistob = 0
+$cptsynch = 0
+$cptwrprop = 0
+
+$cptchoose = 0
+
+
 $right = 1
-while($right -gt 0 -and $right -lt 11)
+while($right -gt 0 -and $right -lt 16)
 {
-    $cptr = 0
-    $cptwr = 0
-    $cptrwr = 0
-    $cptex = 0
-    $cptrex = 0
-    $cptdel = 0
-    $cptmodif = 0
-    $cptcrea = 0
-    $cptcreadir = 0
-    $cptfullc = 0
-    $cptAll = 0
-    $cptlistch = 0
-    $cptlistob = 0
-    $cptsynch = 0
-    $cptwrprop = 0
-
-    $cptchoose = 0
-
     if($rightType -eq 1)
     {
-        $rightype = "Allow"
+        $rightype =[System.Security.AccessControl.AccessControlType]::Allow
     }
     elseif($rightType -eq 2)
     {
-        $rightype = "Deny"
+        $rightype = [System.Security.AccessControl.AccessControlType]::Deny
     }
 
     write-host "Here are different rights you can choose to apply on these groups" 
@@ -632,11 +707,11 @@ while($right -gt 0 -and $right -lt 11)
     if($cptsynch -eq 0){write-host "14- Synchronize"}
     if($cptwrprop -eq 0){write-host "15- WriteProperty"}
     write-host "16- Stop"
+    $right = $null
     $right=Read-Host ">>> "
   
     if($right -ne 16 -and $cptchoose -gt 0)
     {
-        write-host "Ajout VIRGULE"
         $colRights = "$colRights,"
     }
 
@@ -730,51 +805,29 @@ while($right -gt 0 -and $right -lt 11)
         $cptwrprop = $cptwrprop + 1
         $cptchoose = $cptchoose + 1
     }
-}
 
-    $CMNTAccount = New-Object System.Security.Principal.NTAccount("$Global:DOMAIN\$Global:USER")
-
-    #SchemaIDGuid for the Computer Class: bf967a86-0de6-11d0-a285-00aa003049e2 
-    #$ObjectGUID = New-Object -TypeName GUID -ArgumentList bf967a86-0de6-11d0-a285-00aa003049e2
     $ObjectGuid = [GUID]("bf967a86-0de6-11d0-a285-00aa003049e2")
 
-    if($groups -ne $null)
+    foreach($group in $groups)
     {
-        foreach($grp in $groups)
-        {
-            $Arguments = $null
-            try { 
-                    $GroupSID = Get-ADGroup -Identity $grp -ErrorAction Stop | Select-Object -ExpandProperty SID 
-                } 
-            catch 
-                { 
-                    Write-Verbose -Message "Cannot find group: $grp, please supply the correct group name, now exiting." -Verbose 
-                    $inpustop = Read-Host " ..."
-                    break 
-                }
-            $Arguments = "$GroupSID,$colRights,$rightype,$ObjectGUID"
+        $objgroup = $group.Properties;
+        $name = $objgroup.name
+        $Group = "$Global:DOMAIN\$name"
+        write-host $Group
 
-            write-host $Arguments 
-            
-            Try
-            {
-                $ACE = New-Object -TypeName System.DirectoryServices.ActiveDirectoryAccessRule($GroupSID,$colRights,$rightype,$ObjectGUID)
-            }
-            Catch
-            {
-                Write-Host "Error: ACE undefined: " $_.Exception.Message -BackgroundColor Black -ForegroundColor Red
-                $inpustop = Read-Host "..."
-                Break
-            }
+        $aceID = New-Object System.Security.Principal.NTAccount($Group)
 
-            $ADAcl.AddAccessRule($ACE)
-        }
+        $ACE = New-Object -TypeName System.DirectoryServices.ActiveDirectoryAccessRule($aceID,$colRights,$rightype,$ObjectGUID,1)
+
+
+        #$ACE TOUJOURS NULL ??!!!
+        $ADAcl.AddAccessRule($ACE)
     }
 
 
     Try
     {
-        Set-ACL -Path $ADPath -ACLObject $ADAcl -Passthru -Verbose 
+        Set-ACL -Path $ADPath -ACLObject $ADAcl -Passthru 
     }
     Catch
     {
@@ -783,6 +836,7 @@ while($right -gt 0 -and $right -lt 11)
         Break
     }
     $inpustop = Read-Host "..."
+}
 }
 
 
