@@ -36,20 +36,22 @@ Function Add_ACL
     write-host "Please write the name of the Organizational Unit you want"
     $input = Read-Host ">>> "
 
+
     Try{
-        $ou = Get-ADOrganizationalUnit -Identity ("OU=$input,"+$domain.DistinguishedName)
+        $ou = Get-ADOrganizationalUnit -LDAPFilter "LDAP://OU=$input,DC=esgi,DC=priv" -Credential $GLOBAL:CRED
     }
     Catch{
         Write-Host "Error: OU was not found: " $_.Exception.Message -BackgroundColor Black -ForegroundColor Red
+        $inpustop = Read-Host "..."
         Break
     }
 
     Try{
-        write-host "Recuperation des donnees de l'OU $input"
-        $objACL = Get-ACL -Path ($ou.DistinguishedName)
+        $objACL = (Get-Acl -Path "AD:\OU=$input,DC=esgi,DC=priv").Access | ? ActiveDirectoryRights 
         }
     Catch{
-        Write-Host "Error: ACL was not found: " $_.Exception.Message -BackgroundColor Black -ForegroundColor Red
+        Write-Host "Error: ACL was not found in OU: " $_.Exception.Message -BackgroundColor Black -ForegroundColor Red
+        $inpustop = Read-Host " ..."
         Break
     }
 
@@ -131,19 +133,18 @@ while($right -gt 0 -and $right -lt 11)
     }
 }
 
-    $path = $input
-    $acl = Get-Acl -Path $path
     $concat = "$Global:DOMAIN\$Global:USER"
     $ace = New-Object Security.AccessControl.ActiveDirectoryAccessRule($concat,$colsRights)
     $acl.AddAccessRule($ace)
     Try
     {
-        Set-ACL -ACLObject $acl -Path ("AD:\"+($ou.DistinguishedName))
+        Set-ACL -ACLObject $acl -Path ("AD:\OU=$input,DC=esgi,DC=priv")
     }
     Catch
     {
         Write-Host "Error: Set-ACL didn't work: " $_.Exception.Message -BackgroundColor Black -ForegroundColor Red
+        $inpustop = Read-Host "..."
         Break
     }
-    $input = Read-Host "..."
+    $inpustop = Read-Host "..."
 }
