@@ -418,6 +418,9 @@ Add-Content -Value $Header -Path $OutFile
 
 $InputDN = Read-Host -Prompt "Write the DistinguishedName of the Organisation Unit"
 
+
+write-host "Backup In Progress"
+
 Import-Module ActiveDirectory
 set-location ad:
 
@@ -431,9 +434,6 @@ $Childs = Get-ChildItem $InputDN -recurse
 foreach($Child in $Childs){
 
 
-    
-
-    Write-Host $Child.distinguishedName
     
     $Header = $Child.distinguishedName
 
@@ -488,6 +488,8 @@ foreach($Child in $Childs){
     
 }
 
+
+write-host "Backup Is Over"
 }
 
 
