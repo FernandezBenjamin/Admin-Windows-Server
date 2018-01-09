@@ -548,63 +548,13 @@ Function Navigate
 
 Function Add_ACL
 {
-Navigate
+    Navigate
 
-    write-host "These are the differents Organizational Units on this domain"
-    $objDomain = New-Object System.DirectoryServices.DirectoryEntry
+    $ADPath = $GLOBAL:ADPATH
 
-
-    $objSearcher = New-Object System.DirectoryServices.DirectorySearcher
-
-    $objSearcher.SearchRoot = $objDomain
-
-    $objSearcher.Filter = ("(objectCategory=organizationalUnit)")
-
-
-    $colProplist = "name"
-
-    foreach ($i in $colPropList)
-        {
-            $objSearcher.PropertiesToLoad.Add($i)
-        }
-
-
-    $colResults = $objSearcher.FindAll()
-    $cpt = 0
-    foreach ($objResult in $colResults)
-        {
-            $objComputer = $objResult.Properties;
-
-            $name = $objComputer.name
-            write-host "$cpt : $name"
-            $cpt = $cpt + 1
-        }
-    write-host "------------------------------------"
-    write-host "------------------------------------"
-    write-host "Please write the number of the Organizational Unit you want"
-    $nb_ou = Read-Host ">>> "
-    $cpt = 0
-    foreach ($objResult in $colResults)
-        {
-            $objComputer = $objResult.Properties;
-
-            $name = $objComputer.name
-            if($cpt -eq $nb_ou)
-            {
-                $input = $name
-                $LDAPway = $objResult.Path
-            }
-            $cpt = $cpt + 1
-        }
-
-
-    $nb_char = $LDAPway.Length
-
-    $OUdef = $LDAPway.Substring(7,$nb_char-7)
-    $ADPath = "AD:\$OUdef"
-
-    write-host $ADPath
-
+    $nb_char = $GLOBAL:ADPATH.Length
+    $tmp = $GLOBAL:ADPATH.Substring(4,$nb_char-4)
+    $LDAPway = "LDAP://$tmp"
 
 
     Try{
@@ -848,7 +798,7 @@ $againSubMenu = 1
 
 do{
   switch (menuMain){
-  #1 - Save the right environment
+  #1 - Save the environment rights
     1{
       do{
         switch(menuBackup){
@@ -872,7 +822,7 @@ do{
       }while($againSubMenu -eq 1)
 
     }
-  #2 - Display the right environment
+  #2 - Display the environment rights
     2{
     do{
       switch(menuDisplayRight){
@@ -892,7 +842,7 @@ do{
     }while($againSubMenu -eq 1)
 
     }
-  #3 - Restoration of the right environment
+  #3 - Restoration of the environment rights
     3{
       do{
         switch(menuRestoration){
@@ -915,7 +865,7 @@ do{
         }
       }while($againSubMenu -eq 1)
     }
-  #4 - Modify the right environment
+  #4 - Modify the environment rights
     4{
       do{
         switch(menuEdit){
@@ -925,7 +875,7 @@ do{
           }
         #2 - Add an ACL
           2{
-                add_acl
+                Add_ACL
           }
         #3 - Help
           3{
