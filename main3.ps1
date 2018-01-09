@@ -517,7 +517,7 @@ Function Add_ACL
     }
 
     Try{
-        $objACL = (Get-Acl -Path $ADPath).Access | ? ActiveDirectoryRights
+        $objACL = (Get-Acl -Path $ADPath).Access | ? ActiveDirectoryRights 
         }
     Catch{
         Write-Host "Error: ACL was not found in OU: " $_.Exception.Message -BackgroundColor Black -ForegroundColor Red
@@ -545,7 +545,7 @@ Function Add_ACL
         {
             $objComputer = $objResult.Properties;
             $name = $objComputer.name
-            write-host "$cpt - $name "
+            write-host "$cpt - $name " 
 
             $cpt = $cpt + 1
         }
@@ -570,7 +570,7 @@ Function Add_ACL
         {
             $objComputer = $objResult.Properties;
             $name = $objComputer.name
-            write-host "$cpt - $name "
+            write-host "$cpt - $name " 
 
             $cpt = $cpt + 1
         }
@@ -615,8 +615,7 @@ while($right -gt 0 -and $right -lt 11)
         $rightype = "Deny"
     }
 
-
-    write-host "Here are different rights you can choose to apply on these groups"
+    write-host "Here are different rights you can choose to apply on these groups" 
     if($cptr -eq 0){write-host "1- GenericRead"}
     if($cptwr -eq 0){write-host "2- GenericWrite"}
     if($cptrwr -eq 0){write-host "3- ReadControl"}
@@ -634,9 +633,8 @@ while($right -gt 0 -and $right -lt 11)
     if($cptwrprop -eq 0){write-host "15- WriteProperty"}
     write-host "16- Stop"
     $right=Read-Host ">>> "
-
+  
     if($right -ne 16 -and $cptchoose -gt 0)
-
     {
         write-host "Ajout VIRGULE"
         $colRights = "$colRights,"
@@ -644,160 +642,120 @@ while($right -gt 0 -and $right -lt 11)
 
     if($right -eq 1 -and $cptr -eq 0)
     {
-
-        $colRights = $colRights + "Read"
-        $cptr = $cptr + 1
-        $cptchoose = $cptchoose + 1
-    }
-    elseif($right -eq 2 -and $cptwr -eq 0)
-    {
-        $colRights = $colRights + "Write"
         $colRights = $colRights + "GenericRead"
-        $cptr = $cptr + 1
+        $cptr = $cptr + 1 
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 2 -and $cptwr -eq 0)
-    {
-        $colRights = $colRights + "GenericWrite"
-
+    {        
+        $colRights = $colRights + "GenericWrite" 
         $cptwr = $cptwr + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 3 -and $cptrwr -eq 0)
-
-    {
-        $colRights = $colRights + "ReadAndWrite"
-    {
-        $colRights = $colRights + "ReadControl"
-
+    {        
+        $colRights = $colRights + "ReadControl" 
         $cptrwr = $cptrwr + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 4 -and $cptex -eq 0)
-
-    {
-        $colRights = $colRights + "ExecuteFile"
-    {
-        $colRights = $colRights + "GenericExecute"
-
+    {        
+        $colRights = $colRights + "GenericExecute" 
         $cptex = $cptex + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 5 -and $cptrex -eq 0)
-
-    {
-        $colRights = $colRights + "ReadAndExecute"
-    {
+    {        
         $colRights = $colRights + "ReadProperty"
-
         $cptrex = $cptrex + 1
-        $cptchoose = $cptchoose + 1
+        $cptchoose = $cptchoose + 1 
     }
     elseif($right -eq 6 -and $cptdel -eq 0)
-    {
+    {        
         $colRights = $colRights + "Delete"
-        $cptdel = $cptdel + 1
+        $cptdel = $cptdel + 1 
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 7 -and $cptmodif -eq 0)
     {
-
-        $colRights = $colRights + "Modify"
-        $cptmodif = $cptmodif + 1
         $colRights = $colRights + "DeleteChild"
-        $cptmodif = $cptmodif + 1
-
+        $cptmodif = $cptmodif + 1 
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 8 -and $cptcrea -eq 0)
     {
-
-        $colRights = $colRights + "CreateFiles"
-        $cptcrea = $cptcrea + 1
         $colRights = $colRights + "DeleteTree"
-        $cptcrea = $cptcrea + 1
-
+        $cptcrea = $cptcrea + 1 
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 9 -and $cptcreadir -eq 0)
     {
-
-        $colRights = $colRights + "CreateDirectories"
-        $colRights = $colRights + "CreateChild"
-
+        $colRights = $colRights + "CreateChild" 
         $cptcreadir = $cptcreadir + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 10 -and $cptfullc -eq 0)
     {
-
-        $colRights = "Fullcontrol"
-        $colRights = $colRights + "WriteDacl"
-
+        $colRights = $colRights + "WriteDacl" 
         $cptfullc = $cptfullc + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 11 -and $cptAll -eq 0)
     {
-        $colRights = $colRights + "GenericAll"
+        $colRights = $colRights + "GenericAll" 
         $cptAll = $cptAll + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 12 -and $cptlistch -eq 0)
     {
-        $colRights = $colRights + "ListChildren"
+        $colRights = $colRights + "ListChildren" 
         $cptlistch = $cptlistch + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 13 -and $cptlistob -eq 0)
     {
-        $colRights = $colRights + "ListObject"
+        $colRights = $colRights + "ListObject" 
         $cptlistob = $cptlistob + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 14 -and $cptsynch -eq 0)
     {
-        $colRights = $colRights + "Synchronize"
+        $colRights = $colRights + "Synchronize" 
         $cptsynch = $cptsynch + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 15 -and $cptwrprop -eq 0)
     {
-        $colRights = $colRights + "WriteProperty"
+        $colRights = $colRights + "WriteProperty" 
         $cptwrprop = $cptwrprop + 1
         $cptchoose = $cptchoose + 1
     }
 }
 
+    $CMNTAccount = New-Object System.Security.Principal.NTAccount("$Global:DOMAIN\$Global:USER")
 
-    write-host $colRights
-    $acl.SetAccessRuleProtection($True, $False)
-
-    write-host "Les groupes selectionnés sont :"
-    foreach($grp in $groups)
-    #SchemaIDGuid for the Computer Class: bf967a86-0de6-11d0-a285-00aa003049e2
+    #SchemaIDGuid for the Computer Class: bf967a86-0de6-11d0-a285-00aa003049e2 
     #$ObjectGUID = New-Object -TypeName GUID -ArgumentList bf967a86-0de6-11d0-a285-00aa003049e2
     $ObjectGuid = [GUID]("bf967a86-0de6-11d0-a285-00aa003049e2")
 
     if($groups -ne $null)
-
     {
         foreach($grp in $groups)
         {
             $Arguments = $null
-            try {
-                    $GroupSID = Get-ADGroup -Identity $grp -ErrorAction Stop | Select-Object -ExpandProperty SID
-                }
-            catch
-                {
-                    Write-Verbose -Message "Cannot find group: $grp, please supply the correct group name, now exiting." -Verbose
+            try { 
+                    $GroupSID = Get-ADGroup -Identity $grp -ErrorAction Stop | Select-Object -ExpandProperty SID 
+                } 
+            catch 
+                { 
+                    Write-Verbose -Message "Cannot find group: $grp, please supply the correct group name, now exiting." -Verbose 
                     $inpustop = Read-Host " ..."
-                    break
+                    break 
                 }
             $Arguments = "$GroupSID,$colRights,$rightype,$ObjectGUID"
 
-            write-host $Arguments
-
+            write-host $Arguments 
+            
             Try
             {
                 $ACE = New-Object -TypeName System.DirectoryServices.ActiveDirectoryAccessRule($GroupSID,$colRights,$rightype,$ObjectGUID)
@@ -816,7 +774,7 @@ while($right -gt 0 -and $right -lt 11)
 
     Try
     {
-        Set-ACL -Path $ADPath -ACLObject $ADAcl -Passthru -Verbose
+        Set-ACL -Path $ADPath -ACLObject $ADAcl -Passthru -Verbose 
     }
     Catch
     {
@@ -925,7 +883,7 @@ do{
           }
         #0 - Return
           default{
-            $againSubMenu = 0
+            $againSubMenu
           }
         }
       }while($againSubMenu -eq 1)
