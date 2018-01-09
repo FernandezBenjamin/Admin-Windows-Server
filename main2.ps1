@@ -517,7 +517,7 @@ Function Add_ACL
     }
 
     Try{
-        $objACL = (Get-Acl -Path $ADPath).Access | ? ActiveDirectoryRights 
+        $objACL = (Get-Acl -Path $ADPath).Access | ? ActiveDirectoryRights
         }
     Catch{
         Write-Host "Error: ACL was not found in OU: " $_.Exception.Message -BackgroundColor Black -ForegroundColor Red
@@ -579,7 +579,7 @@ while($right -gt 0 -and $right -lt 11)
         $rightype = "Deny"
     }
 
-    write-host "Here are different rights you can choose to apply on these groups" 
+    write-host "Here are different rights you can choose to apply on these groups"
     if($cptr -eq 0){write-host "1- Read"}
     if($cptwr -eq 0){write-host "2- Write"}
     if($cptrwr -eq 0){write-host "3- Read and write"}
@@ -592,7 +592,7 @@ while($right -gt 0 -and $right -lt 11)
     if($cptfullc -eq 0){write-host "10- Full control"}
     write-host "11- Stop"
     $right=Read-Host ">>> "
-  
+
     if($right -ne 11 -and $cptchoose -gt 0)
     {
         $colRights = $colRights + ","
@@ -601,68 +601,68 @@ while($right -gt 0 -and $right -lt 11)
     if($right -eq 1 -and $cptr -eq 0)
     {
         $colRights = $colRights + "Read"
-        $cptr = $cptr + 1 
+        $cptr = $cptr + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 2 -and $cptwr -eq 0)
-    {        
-        $colRights = $colRights + "Write" 
+    {
+        $colRights = $colRights + "Write"
         $cptwr = $cptwr + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 3 -and $cptrwr -eq 0)
-    {        
-        $colRights = $colRights + "ReadAndWrite" 
+    {
+        $colRights = $colRights + "ReadAndWrite"
         $cptrwr = $cptrwr + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 4 -and $cptex -eq 0)
-    {        
-        $colRights = $colRights + "ExecuteFile" 
+    {
+        $colRights = $colRights + "ExecuteFile"
         $cptex = $cptex + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 5 -and $cptrex -eq 0)
-    {        
+    {
         $colRights = $colRights + "ReadAndExecute"
         $cptrex = $cptrex + 1
-        $cptchoose = $cptchoose + 1 
+        $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 6 -and $cptdel -eq 0)
-    {        
+    {
         $colRights = $colRights + "Delete"
-        $cptdel = $cptdel + 1 
+        $cptdel = $cptdel + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 7 -and $cptmodif -eq 0)
     {
         $colRights = $colRights + "Modify"
-        $cptmodif = $cptmodif + 1 
+        $cptmodif = $cptmodif + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 8 -and $cptcrea -eq 0)
     {
         $colRights = $colRights + "CreateFiles"
-        $cptcrea = $cptcrea + 1 
+        $cptcrea = $cptcrea + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 9 -and $cptcreadir -eq 0)
     {
-        $colRights = $colRights + "CreateDirectories" 
+        $colRights = $colRights + "CreateDirectories"
         $cptcreadir = $cptcreadir + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 10 -and $cptfullc -eq 0)
     {
-        $colRights = "Fullcontrol" 
+        $colRights = "Fullcontrol"
         $cptfullc = $cptfullc + 1
         $right = 11
     }
 }
-    
+
     write-host $colRights
     $acl.SetAccessRuleProtection($True, $False)
-    
+
     write-host "Les groupes selectionnés sont :"
     foreach($grp in $groups)
     {
@@ -672,7 +672,7 @@ while($right -gt 0 -and $right -lt 11)
         {
             $acl.AddAccessRule($rule)
         }
-             
+
     }
 
     $concat = "$Global:DOMAIN\$Global:USER"
@@ -789,7 +789,7 @@ do{
           }
         #0 - Return
           default{
-            $againSubMenu
+            $againSubMenu = 0
           }
         }
       }while($againSubMenu -eq 1)
