@@ -235,7 +235,7 @@ Function menuRestoration{
     if( $choice -lt $min -or $choice -gt $max){
        mess_error -error_mess "You enter a wrong value ($choice)" -help_mess "Please enter a value between 0 and 3. Enter '3' for help"
     }
-    header("MENU : RESTORATATION OF THE RIGHT ENVIRONMENT")
+    header("MENU : RESTORATION OF THE RIGHT ENVIRONMENT")
     Write-Host "`t0 - Return"
     Write-Host "`t1 - Restoration complete"
     Write-Host "`t2 - Restoration from a point"
