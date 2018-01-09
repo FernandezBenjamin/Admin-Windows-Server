@@ -486,8 +486,7 @@ Function Navigate
             $cpt = $cpt + 1
         }
     write-host "------------------------------------"
-    write-host "Please write the number of the Organizational Unit you want"
-    $nb_ou = Read-Host ">>> "
+    $nb_ou = Read-Host "Select your number "
     $cpt = 0
     foreach ($objResult in $colResults)
         {
@@ -517,8 +516,7 @@ Function Navigate
         foreach($ou_child in $OU_childs)
         {
             $name = $ou_child.name
-            write-host "$cpt -> $name"
-            write-host $ou_child
+            write-host "[$cpt] -> $name"
             $cpt = $cpt + 1
         }
         write-host "-1 -> QUIT"
@@ -550,10 +548,8 @@ Function Navigate
 
 Function Add_ACL
 {
-$way = Navigate
-$temp = $way
-$way.remove(0,2)
-write-host $temp
+Navigate
+
     write-host "These are the differents Organizational Units on this domain"
     $objDomain = New-Object System.DirectoryServices.DirectoryEntry
 
