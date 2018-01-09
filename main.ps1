@@ -395,7 +395,7 @@ Function helpEditMenu{
 #============================# FUNCTION BACKUP #============================#
 
 Function backup{
-  $Date = Get-Date -UFormat "%Y_%m_%d_%H_%M"
+ $Date = Get-Date -UFormat "%Y_%m_%d_%H_%M"
 
 $OutFile = "C:\Backup\Backup_$Date.csv"
 
@@ -412,7 +412,7 @@ if (!(Test-Path -Path "C:\Backup")){
 
 
 
-$Header = "IdentityReference,AccessControlType,IsInherited,PropagationFlags"
+$Header = "IdentityReference,AccessControlType,IsInherited,PropagationFlags,ActiveDirectoryRights"
 Add-Content -Value $Header -Path $OutFile 
 
 
@@ -421,7 +421,7 @@ $InputDN = Read-Host -Prompt "Write the DistinguishedName of the Organisation Un
 Import-Module ActiveDirectory
 set-location ad:
 
-(Get-Acl $InputDN).access | ft identityreference, accesscontroltype, isinherited, propagantionflags -autosize
+(Get-Acl $InputDN).access | ft identityreference, accesscontroltype, isinherited, propagantionflags,activedirectoryrights -autosize
 
 
 
@@ -445,7 +445,7 @@ foreach($Child in $Childs){
 
     
      
-    (Get-Acl $Child.DistinguishedName).access | ft identityreference, accesscontroltype, isinherited, propagationflags -autosize
+    (Get-Acl $Child.DistinguishedName).access | ft identityreference, accesscontroltype, isinherited, propagationflags,activedirectoryrights -autosize
     
      $ACLs = Get-Acl $Child.DistinguishedName | ForEach-Object {$_.access}
 
@@ -479,14 +479,50 @@ foreach($Child in $Childs){
 
         }
 
+        $Final = "$OutInfo, " + ($ACL.activedirectoryrights -replace ',',';')
 
-	    Add-Content -Value $OutInfo -Path $OutFile
+
+	    Add-Content -Value $Final -Path $OutFile
 	}
 
     
 }
 
 }
+
+
+
+
+Function Import{
+
+$Backup = Import-CSV C:\Backup\Backup_2018_01_09_13_45.csv  
+
+
+
+foreach ($acl in $Backup ) {
+
+   if( $acl.IdentityReference.StartsWith("CN=") -Or $acl.IdentityReference.StartsWith("OU=") -Or $acl.IdentityReference.StartsWith("DC=") ){
+        $InputDN = $acl.IdentityReference -replace '/',','
+
+   } else {
+        $path = "AD:\$InputDN"
+
+        
+        $activedirectoryrights = $acl.ActiveDirectoryRights -replace ';',','
+        Write-Host $activedirectoryrights
+        #Set-Acl -Path $path -IdentityReference $acl.IdentityReference -AccessControlType $acl.AccessControlType -IsInherited $acl.IsInherited
+   }
+
+
+}
+
+}
+
+
+
+
+
+
 
 Function Get-ADSIOU
 {
