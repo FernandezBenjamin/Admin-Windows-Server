@@ -1,3 +1,6 @@
+#Variable Globale
+$GLOBAL:ADPATH = $null
+
 Function Navigate
 {
     $objDomain = New-Object System.DirectoryServices.DirectoryEntry
@@ -18,6 +21,7 @@ Function Navigate
         }
 
     write-host "Here are the differents Organizational Units of the Domain : $Global:DOMAIN"
+    write-host "------------------------------------"
 
     $colResults = $objSearcher.FindAll()
     $cpt = 0
@@ -30,9 +34,7 @@ Function Navigate
             $cpt = $cpt + 1
         }
     write-host "------------------------------------"
-    write-host "------------------------------------"
-    write-host "Please write the number of the Organizational Unit you want"
-    $nb_ou = Read-Host ">>> "
+    $nb_ou = Read-Host "Select your number "
     $cpt = 0
     foreach ($objResult in $colResults)
         {
@@ -51,6 +53,7 @@ Function Navigate
     while($stop -eq 0)
     {
         write-host "Here are the childs of the Organizational Unit you selected : $input"
+        write-host "------------------------------------"
         $nb_char = $LDAPway.Length
 
         $OUdef = $LDAPway.Substring(7,$nb_char-7)
@@ -61,11 +64,11 @@ Function Navigate
         foreach($ou_child in $OU_childs)
         {
             $name = $ou_child.name
-            write-host "$cpt -> $name"
-            write-host $ou_child
+            write-host "[$cpt] -> $name"
             $cpt = $cpt + 1
         }
         write-host "-1 -> QUIT"
+        write-host "------------------------------------"
         $nb_ou = Read-Host "Select your number "
         if($nb_ou -eq -1){$stop = 1}
         $cpt = 0
@@ -75,18 +78,101 @@ Function Navigate
 
                 if($cpt -eq $nb_ou)
                 {
-                    $input = $ou_child.name
+                    $tmp = $ou_child.name
+                    $input = "$input >> $tmp"
                     $LDAPway = "LDAP://$ou_child"
-                    write-host $LDAPway
                 }
                 $cpt = $cpt + 1
             }
     }
-    $inpustop = Read-Host "..."
 
-    return $ADPath
+    $Global:ADPATH = $ADPath.ToString()
 }
 
-$way = Navigate
+$Date = Get-Date -UFormat "%Y_%m_%d_%H_%M"
 
-#Faire un traitement pour supprimer les deux premiers char (0 et ' ')
+$OutFile = "C:\Backup\Backup_$Date.csv"
+
+
+if (Test-Path $OutFile){
+    Del $OutFile
+}
+
+
+if (!(Test-Path -Path "C:\Backup")){
+    New-Item -ItemType Directory -Path C:\Backup
+
+}
+
+
+
+
+Navigate
+
+$ADPath = $GLOBAL:ADPATH
+
+$nb_char = $GLOBAL:ADPATH.Length
+$tmp = $GLOBAL:ADPATH.Substring(4,$nb_char-4)
+$InputDN = 'LDAP://'+ $tmp
+
+
+Import-Module ActiveDirectory
+set-location ad:
+
+(Get-Acl -Path $ADPath).access | ft identityreference, accesscontroltype, isinherited -autosize
+
+
+
+$Childs = Get-ChildItem -Path $ADPath -recurse
+
+
+foreach($Child in $Childs){
+
+
+    Write-Host $Child.distinguishedName
+    
+    $Header = $Child.distinguishedName
+    
+    Add-Content -Value $Header -Path $OutFile
+
+    
+    $Header = "IdentityReference,AccessControlType,IsInherited"
+    Add-Content -Value $Header -Path $OutFile 
+    
+
+
+    
+     
+    (Get-Acl $Child.DistinguishedName).access | ft identityreference, accesscontroltype, isinherited -autosize
+    
+     $ACLs = Get-Acl $Child.DistinguishedName | ForEach-Object {$_.access}
+
+
+
+
+    Foreach ($ACL in $ACLs){
+	    $OutInfo = $ACL.identityreference
+
+
+       if ($ACL.AccessControlType -eq "Allow"){
+            $OutInfo = "$OutInfo, Allow"
+
+        } else {
+            $OutInfo = "$OutInfo, Deny"
+        }
+
+
+        if ($ACL.IsInherited -eq "True"){
+            $OutInfo = "$OutInfo, True"
+
+        } else {
+            $OutInfo = "$OutInfo, False"
+        }
+        
+
+
+	    Add-Content -Value $OutInfo -Path $OutFile
+	}
+
+    
+}
