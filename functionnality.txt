@@ -10,6 +10,7 @@
 
 <<<<<<< Updated upstream
   4- Visualisation des droits
+<<<<<<< Updated upstream
 
 =======
 <<<<<<< HEAD
@@ -17,6 +18,9 @@
 =======
   4- Visualisation des droits
 >>>>>>> master
+>>>>>>> Stashed changes
+=======
+
 >>>>>>> Stashed changes
 
 
@@ -104,10 +108,14 @@ User connect : .....
     1 - Quit the program
     2 - Change domaine
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     3 - Re-authentification
 =======
     3 - Re-authentification
 <<<<<<< HEAD
+>>>>>>> Stashed changes
+=======
+    3 - Re-authentification
 >>>>>>> Stashed changes
     4 - Save rights
     5 - Restoration
@@ -117,6 +125,7 @@ User connect : .....
 =============================================
 
 
+<<<<<<< Updated upstream
 SOUS-MENU : Save rights
 =======
 =============================================
@@ -124,6 +133,10 @@ SOUS-MENU : Save rights
 
 SOUS-MENU : Save rights
 =======
+=======
+SOUS-MENU : Save rights
+=======
+>>>>>>> Stashed changes
     4 - Sauvegarde
     5 - Restauration
     6 - Edition
@@ -132,7 +145,14 @@ SOUS-MENU : Save rights
 
 
 SOUS-MENU : Sauvegarde
+<<<<<<< Updated upstream
 >>>>>>> master
+>>>>>>> Stashed changes
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> master
+>>>>>>> Stashed changes
 >>>>>>> Stashed changes
 =============================================
               SAVE RIGHTS
@@ -160,6 +180,10 @@ You have save the rights from ..... at ...
 
 SOUS-MENU : Restoration
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 =============================================
               RESTORATION
 =============================================
