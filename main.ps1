@@ -1,4 +1,4 @@
-#Allow the script execution
+ #Allow the script execution
 Set-ExecutionPolicy Unrestricted
 
  #Import Active Directory Module
@@ -8,9 +8,8 @@ Set-ExecutionPolicy Unrestricted
 #Variable Global
 $Global:DOMAIN = $null
 $Global:USER = $null
-$Global:ADPATH = $null
-$Global:flagBackup = 0
-
+$GLOBAL:CRED = $null
+$GLOBAL:ADPATH = $null
 
 #============================# FUNCTIONS CREDENTIAL #============================#
 
@@ -44,17 +43,18 @@ Function TestUserCredentials
 {
     ClearUserInfo
     #Get user credentials
-    $Cred = Get-Credential -Message "Enter Your Credentials (Domain\Username)"
-    if ($Cred -eq $Null){
+    $cred = Get-Credential -Message "Enter Your Credentials (Domain\Username)"
+    $GLOBAL:CRED = $cred
+    if ($cred -eq $Null){
         Write-Host "Please enter your username in the form of Domain\UserName and try again" -BackgroundColor Black -ForegroundColor Yellow
         Rerun
         Break
     }
 
     #Parse provided user credentials
-    $DomainNetBIOS = $Cred.username.Split("{\}")[0]
-    $UserName = $Cred.username.Split("{\}")[1]
-    $Password = $Cred.GetNetworkCredential().password
+    $DomainNetBIOS = $cred.username.Split("{\}")[0]
+    $UserName = $cred.username.Split("{\}")[1]
+    $Password = $cred.GetNetworkCredential().password
 
     Write-Host "`n"
     Write-Host "Checking Credentials for $DomainNetBIOS\$UserName" -BackgroundColor Black -ForegroundColor White
@@ -177,6 +177,8 @@ Function menuMain{
         Write-Host "`t7 - Quit`n"
         footer
 
+        Add_ACL
+
         $choice = Read-Host -Prompt "What do you want to do?"
 
     }while($choice -lt $min -or $choice -gt $max)
@@ -200,9 +202,6 @@ Function menuBackup{
     Write-Host "`t1 - Yes"
     Write-Host "`t2 - No"
     Write-Host "`t3 - Help"
-    if($Global:flagBackup -eq 1){
-    Write-Host "`n`t Backup done`n"
-    }
     footer
     $choice = Read-Host -Prompt "What do you want to do?"
   }while($choice -lt 0 -or $choice -gt 3)
@@ -241,7 +240,7 @@ Function menuRestoration{
     if( $choice -lt $min -or $choice -gt $max){
        mess_error -error_mess "You enter a wrong value ($choice)" -help_mess "Please enter a value between 0 and 3. Enter '3' for help"
     }
-    header("MENU : RESTORATION OF THE RIGHT ENVIRONMENT")
+    header("MENU : RESTORATATION OF THE RIGHT ENVIRONMENT")
     Write-Host "`t0 - Return"
     Write-Host "`t1 - Restoration complete"
     Write-Host "`t2 - Restoration from a point"
@@ -397,231 +396,151 @@ Function helpEditMenu{
   return $choice;
 }
 
-#============================# FUNCTION NAVIGATE #============================#
-
-Function Navigate
-{
-  $firstDomain = $GLOBAL:DOMAIN.Split('.')[0]
-  $secondDomain = $GLOBAL:DOMAIN.Split('.')[1]
-  $LDAPway = "LDAP://DC=$firstDomain,DC=$secondDomain"
-
-  $stop = 0
-  while($stop -eq 0){
-    write-host "Here are the childs of the Organizational Unit you selected : $input"
-    write-host "------------------------------------"
-    Write-Host "LDAP =$LDAPway"
-    $nb_char = $LDAPway.Length
-    $OUdef = $LDAPway.Substring(7,$nb_char-7)
-    Write-Host "LDAP =$LDAPway"
-    $ADPath = "AD:\$OUdef"
-    $OU_childs = Get-ChildItem -Path $ADPath
-
-    $cpt = 0
-    foreach($ou_child in $OU_childs){
-      $name = $ou_child.name
-      write-host "[$cpt] -> $name"
-      $cpt = $cpt + 1
-    }
-    write-host "-1 -> QUIT"
-    write-host "------------------------------------"
-    $nb_ou = Read-Host "Select your number "
-    if($nb_ou -eq -1){$stop = 1}
-    $cpt = 0
-    foreach ($ou_child in $OU_childs){
-      $ou_chil = $ou_child.Properties;
-
-      if($cpt -eq $nb_ou){
-        $tmp = $ou_child.name
-        $input = "$input >> $tmp"
-        $LDAPway = "LDAP://$ou_child"
-      }
-      $cpt = $cpt + 1
-    }
-  }
-  $Global:ADPATH = $ADPath.ToString()
-}
 
 #============================# FUNCTION BACKUP #============================#
 
 Function backup{
- $Date = Get-Date -UFormat "%Y_%m_%d_%H_%M"
+  $Date = Get-Date -UFormat "%Y_%m_%d_%H_%M"
+  $OutFile = "C:\Backup\Backup_$Date.csv"
 
-$OutFile = "C:\Backup\Backup_$Date.csv"
-
-
-if (Test-Path $OutFile){
+  if (Test-Path $OutFile){
     Del $OutFile
-}
+  }
 
-
-if (!(Test-Path -Path "C:\Backup")){
+  if (!(Test-Path -Path "C:\Backup")){
     New-Item -ItemType Directory -Path C:\Backup
+  }
 
-}
+  $InputDN = Read-Host -Prompt "Write the DistinguishedName of the Organisation Unit"
 
+  Import-Module ActiveDirectory
+  set-location ad:
+  (Get-Acl $InputDN).access | ft identityreference, accesscontroltype, isinherited -autosize
 
+  $Childs = Get-ChildItem $InputDN -recurse
 
-$Header = "IdentityReference,AccessControlType,IsInherited,PropagationFlags,ActiveDirectoryRights"
-Add-Content -Value $Header -Path $OutFile
-
-
-$firstDomain = $Global:DOMAIN.Split('.')[0]
-$secondDomain = $Global:DOMAIN.Split('.')[1]
-$InputDN = "DC=$firstDomain,DC=$secondDomain"
-
-
-#$InputDN = Read-Host -Prompt "Write the DistinguishedName of the Organisation Unit"
-
-
-write-host "Backup In Progress"
-
-Import-Module ActiveDirectory
-set-location ad:
-
-(Get-Acl $InputDN).access | ft identityreference, accesscontroltype, isinherited, propagantionflags,activedirectoryrights -autosize
-
-
-
-$Childs = Get-ChildItem $InputDN -recurse
-
-
-foreach($Child in $Childs){
-
-
-
+  foreach($Child in $Childs){
+    Write-Host $Child.distinguishedName
     $Header = $Child.distinguishedName
-
-    $header = $header -replace ',','/'
-
     Add-Content -Value $Header -Path $OutFile
 
+    $Header = "IdentityReference,AccessControlType,IsInherited"
+    Add-Content -Value $Header -Path $OutFile
 
+    (Get-Acl $Child.DistinguishedName).access | ft identityreference, accesscontroltype, isinherited -autosize
 
-
-
-    (Get-Acl $Child.DistinguishedName).access | ft identityreference, accesscontroltype, isinherited, propagationflags,activedirectoryrights -autosize
-
-     $ACLs = Get-Acl $Child.DistinguishedName | ForEach-Object {$_.access}
-
-
-
+    $ACLs = Get-Acl $Child.DistinguishedName | ForEach-Object {$_.access}
 
     Foreach ($ACL in $ACLs){
-	    $OutInfo = $ACL.identityreference
-
-
-       if ($ACL.AccessControlType -eq "Allow"){
-            $OutInfo = "$OutInfo, Allow"
-
-        } else {
-            $OutInfo = "$OutInfo, Deny"
-        }
-
-
-        if ($ACL.IsInherited -eq "True"){
-            $OutInfo = "$OutInfo, True"
-
-        } else {
-            $OutInfo = "$OutInfo, False"
-        }
-
-
-        if ($ACL.PropagationFlags -eq "InheritOnly"){
-            $OutInfo = "$OutInfo, InheritOnly"
-        } else {
-            $OutInfo = "$OutInfo, None"
-
-        }
-
-        $Final = "$OutInfo, " + ($ACL.activedirectoryrights -replace ',',';')
-
-
-	    Add-Content -Value $Final -Path $OutFile
-	}
-
-
-}
-
-$Global:flagBackup = 1
-write-host "Backup Is Over"
-}
-
-
-
-
-Function Import{
-
-$Backup = Import-CSV C:\Backup\Backup_2018_01_09_13_45.csv
-
-
-
-foreach ($acl in $Backup ) {
-
-   if( $acl.IdentityReference.StartsWith("CN=") -Or $acl.IdentityReference.StartsWith("OU=") -Or $acl.IdentityReference.StartsWith("DC=") ){
-        $InputDN = $acl.IdentityReference -replace '/',','
-
-   } else {
-        $path = "AD:\$InputDN"
-
-
-        $activedirectoryrights = $acl.ActiveDirectoryRights -replace ';',','
-        Write-Host $activedirectoryrights
-        #Set-Acl -Path $path -IdentityReference $acl.IdentityReference -AccessControlType $acl.AccessControlType -IsInherited $acl.IsInherited
-   }
-
-
-}
-
+      $OutInfo = $ACL.identityreference
+      if($ACL.AccessControlType -eq "Allow"){
+          $OutInfo = "$OutInfo, Allow"
+      }else {
+        $OutInfo = "$OutInfo, Deny"
+      }
+      if ($ACL.IsInherited -eq "True"){
+        $OutInfo = "$OutInfo, True"
+      }else{
+        $OutInfo = "$OutInfo, False"
+      }
+      Add-Content -Value $OutInfo -Path $OutFile
+    }
+  }
 }
 
 
 #============================# FUNCTION NAVIGATE #============================#
+#
+#LA FONCTION MODIFIE $GLOBAL:ADPATH A LA FIN DE SON EXECUTION
 
 Function Navigate
 {
-        $firstDomain = $GLOBAL:DOMAIN.Split('.')[0]
-        $secondDomain = $GLOBAL:DOMAIN.Split('.')[1]
-        $LDAPway = "LDAP://DC=$firstDomain,DC=$secondDomain"
-        $stop = 0
-        while($stop -eq 0)
-        {
-            cls
-            header("NAVIGATE")
-            write-host "Here are the childs of the Organizational Unit you selected : $input"
-            write-host "------------------------------------"
-            $nb_char = $LDAPway.Length
-            $OUdef = $LDAPway.Substring(7,$nb_char-7)
-            $ADPath = "AD:\$OUdef"
-            $OU_childs = Get-ChildItem -Path $ADPath
+    $objDomain = New-Object System.DirectoryServices.DirectoryEntry
 
-            $cpt = 0
-            foreach($ou_child in $OU_childs)
+
+    $objSearcher = New-Object System.DirectoryServices.DirectorySearcher
+
+    $objSearcher.SearchRoot = $objDomain
+
+    $objSearcher.Filter = ("(objectCategory=organizationalUnit)")
+
+
+    $colProplist = "name"
+
+    foreach ($i in $colPropList)
+        {
+            $objSearcher.PropertiesToLoad.Add($i)
+        }
+
+    write-host "Here are the differents Organizational Units of the Domain : $Global:DOMAIN"
+    write-host "------------------------------------"
+
+    $colResults = $objSearcher.FindAll()
+    $cpt = 0
+    foreach ($objResult in $colResults)
+        {
+            $objComputer = $objResult.Properties;
+
+            $name = $objComputer.name
+            write-host "$cpt -> $name"
+            $cpt = $cpt + 1
+        }
+    write-host "------------------------------------"
+    $nb_ou = Read-Host "Select your number "
+    $cpt = 0
+    foreach ($objResult in $colResults)
+        {
+            $objComputer = $objResult.Properties;
+
+            $name = $objComputer.name
+            if($cpt -eq $nb_ou)
             {
-                $name = $ou_child.name
-                write-host "[$cpt] -> $name"
+                $input = $name
+                $LDAPway = $objResult.Path
+            }
+            $cpt = $cpt + 1
+        }
+
+    $stop = 0
+    while($stop -eq 0)
+    {
+        write-host "Here are the childs of the Organizational Unit you selected : $input"
+        write-host "------------------------------------"
+        $nb_char = $LDAPway.Length
+
+        $OUdef = $LDAPway.Substring(7,$nb_char-7)
+        $ADPath = "AD:\$OUdef"
+        $OU_childs = Get-ChildItem -Path $ADPath
+
+        $cpt = 0
+        foreach($ou_child in $OU_childs)
+        {
+            $name = $ou_child.name
+            write-host "[$cpt] -> $name"
+            $cpt = $cpt + 1
+        }
+        write-host "-1 -> QUIT"
+        write-host "------------------------------------"
+        $nb_ou = Read-Host "Select your number "
+        if($nb_ou -eq -1){$stop = 1}
+        $cpt = 0
+        foreach ($ou_child in $OU_childs)
+            {
+                $ou_chil = $ou_child.Properties;
+
+                if($cpt -eq $nb_ou)
+                {
+                    $tmp = $ou_child.name
+                    $input = "$input >> $tmp"
+                    $LDAPway = "LDAP://$ou_child"
+                }
                 $cpt = $cpt + 1
             }
-            write-host "-1 -> QUIT"
-            write-host "------------------------------------"
-            $nb_ou = Read-Host "Select your number "
-            if($nb_ou -eq -1){$stop = 1}
-            $cpt = 0
-            foreach ($ou_child in $OU_childs)
-                {
-                    $ou_chil = $ou_child.Properties;
-
-                    if($cpt -eq $nb_ou)
-                    {
-                        $tmp = $ou_child.name
-                        $input = "$input >> $tmp"
-                        $LDAPway = "LDAP://$ou_child"
-                    }
-                    $cpt = $cpt + 1
-                }
-        }
+    }
 
     $Global:ADPATH = $ADPath.ToString()
 }
+
 
 
 #============================# FUNCTION AJOUT ACE DANS ACL #============================#
@@ -631,7 +550,7 @@ Function Add_ACL
 {
     Navigate
 
-    $ADPath = $Global:ADPATH
+    $ADPath = $GLOBAL:ADPATH
 
     $nb_char = $GLOBAL:ADPATH.Length
     $tmp = $GLOBAL:ADPATH.Substring(4,$nb_char-4)
@@ -649,7 +568,7 @@ Function Add_ACL
 
     Try{
         $objACL = (Get-Acl -Path $ADPath).Access | ? ActiveDirectoryRights
-        $objACL.ActiveDirectoryRights
+        $objACL.ActiveDirectoryRights 
         }
     Catch{
         Write-Host "Error: ACL was not found in OU: " $_.Exception.Message -BackgroundColor Black -ForegroundColor Red
@@ -677,66 +596,66 @@ Function Add_ACL
         {
             $objgroup = $group.Properties;
             $name = $objgroup.name
-            write-host "$cpt - $name "
+            write-host "$cpt - $name " 
 
             $cpt = $cpt + 1
         }
 
-    write-host "Do you want to Allow or Deny the next selection ?"
+    write-host "Do you want to set the type Allow or Deny the next selection ?"
     $rightType = Read-Host "1- Allow | 2- Deny  >>> "
 
 
-$cptr = 0
-$cptwr = 0
-$cptrwr = 0
-$cptex = 0
-$cptrex = 0
-$cptdel = 0
-$cptmodif = 0
-$cptcrea = 0
-$cptcreadir = 0
-$cptfullc = 0
-$cptAll = 0
-$cptlistch = 0
-$cptlistob = 0
-$cptsynch = 0
-$cptwrprop = 0
+    $cptr = 0
+    $cptwr = 0
+    $cptrwr = 0
+    $cptex = 0
+    $cptrex = 0
+    $cptdel = 0
+    $cptmodif = 0
+    $cptcrea = 0
+    $cptcreadir = 0
+    $cptfullc = 0
+    $cptAll = 0
+    $cptlistch = 0
+    $cptlistob = 0
+    $cptsynch = 0
+    $cptwrprop = 0
 
-$cptchoose = 0
+    $cptchoose = 0
 
 
-$right = 1
-while($right -gt 0 -and $right -lt 16)
-{
-    if($rightType -eq 1)
+    $right = 1
+    while($right -gt 0 -and $right -lt 16)
     {
-        $rightype =[System.Security.AccessControl.AccessControlType]::Allow
-    }
-    elseif($rightType -eq 2)
-    {
-        $rightype = [System.Security.AccessControl.AccessControlType]::Deny
-    }
+        if($rightType -eq 1)
+        {
+            $rightype =[System.Security.AccessControl.AccessControlType]::Allow
+        }
+        elseif($rightType -eq 2)
+        {
+            $rightype = [System.Security.AccessControl.AccessControlType]::Deny
+        }
 
-    write-host "Here are different rights you can choose to apply on these groups"
-    if($cptr -eq 0){write-host "1- GenericRead"}
-    if($cptwr -eq 0){write-host "2- GenericWrite"}
-    if($cptrwr -eq 0){write-host "3- ReadControl"}
-    if($cptex -eq 0){write-host "4- GenericExecute"}
-    if($cptrex -eq 0){write-host "5- ReadProperty"}
-    if($cptdel -eq 0){write-host "6- Delete"}
-    if($cptmodif -eq 0){write-host "7- DeleteChild"}
-    if($cptcrea -eq 0){write-host "8- DeleteTree"}
-    if($cptcreadir -eq 0){write-host "9- CreateChild"}
-    if($cptfullc -eq 0){write-host "10- WriteDacl"}
-    if($cptAll -eq 0){write-host "11- GenericAll"}
-    if($cptlistch -eq 0){write-host "12- ListChildren"}
-    if($cptlistob = 0 -eq 0){write-host "13- ListObject"}
-    if($cptsynch -eq 0){write-host "14- Synchronize"}
-    if($cptwrprop -eq 0){write-host "15- WriteProperty"}
-    write-host "16- Stop"
-    $right = $null
-    $right=Read-Host ">>> "
-
+        write-host "Here are different rights you can choose to apply on these groups" 
+        if($cptr -eq 0){write-host "1- GenericRead"}
+        if($cptwr -eq 0){write-host "2- GenericWrite"}
+        if($cptrwr -eq 0){write-host "3- ReadControl"}
+        if($cptex -eq 0){write-host "4- GenericExecute"}
+        if($cptrex -eq 0){write-host "5- ReadProperty"}
+        if($cptdel -eq 0){write-host "6- Delete"}
+        if($cptmodif -eq 0){write-host "7- DeleteChild"}
+        if($cptcrea -eq 0){write-host "8- DeleteTree"}
+        if($cptcreadir -eq 0){write-host "9- CreateChild"}
+        if($cptfullc -eq 0){write-host "10- WriteDacl"}
+        if($cptAll -eq 0){write-host "11- GenericAll"}
+        if($cptlistch -eq 0){write-host "12- ListChildren"}
+        if($cptlistob = 0 -eq 0){write-host "13- ListObject"}
+        if($cptsynch -eq 0){write-host "14- Synchronize"}
+        if($cptwrprop -eq 0){write-host "15- WriteProperty"}
+        write-host "16- Stop"
+        $right = $null
+        $right=Read-Host ">>> "
+  
     if($right -ne 16 -and $cptchoose -gt 0)
     {
         $colRights = "$colRights,"
@@ -745,126 +664,127 @@ while($right -gt 0 -and $right -lt 16)
     if($right -eq 1 -and $cptr -eq 0)
     {
         $colRights = $colRights + "GenericRead"
-        $cptr = $cptr + 1
+        $cptr = $cptr + 1 
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 2 -and $cptwr -eq 0)
-    {
-        $colRights = $colRights + "GenericWrite"
+    {        
+        $colRights = $colRights + "GenericWrite" 
         $cptwr = $cptwr + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 3 -and $cptrwr -eq 0)
-    {
-        $colRights = $colRights + "ReadControl"
+    {        
+        $colRights = $colRights + "ReadControl" 
         $cptrwr = $cptrwr + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 4 -and $cptex -eq 0)
-    {
-        $colRights = $colRights + "GenericExecute"
+    {        
+        $colRights = $colRights + "GenericExecute" 
         $cptex = $cptex + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 5 -and $cptrex -eq 0)
-    {
+    {        
         $colRights = $colRights + "ReadProperty"
         $cptrex = $cptrex + 1
-        $cptchoose = $cptchoose + 1
+        $cptchoose = $cptchoose + 1 
     }
     elseif($right -eq 6 -and $cptdel -eq 0)
-    {
+    {        
         $colRights = $colRights + "Delete"
-        $cptdel = $cptdel + 1
+        $cptdel = $cptdel + 1 
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 7 -and $cptmodif -eq 0)
     {
         $colRights = $colRights + "DeleteChild"
-        $cptmodif = $cptmodif + 1
+        $cptmodif = $cptmodif + 1 
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 8 -and $cptcrea -eq 0)
     {
         $colRights = $colRights + "DeleteTree"
-        $cptcrea = $cptcrea + 1
+        $cptcrea = $cptcrea + 1 
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 9 -and $cptcreadir -eq 0)
     {
-        $colRights = $colRights + "CreateChild"
+        $colRights = $colRights + "CreateChild" 
         $cptcreadir = $cptcreadir + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 10 -and $cptfullc -eq 0)
     {
-        $colRights = $colRights + "WriteDacl"
+        $colRights = $colRights + "WriteDacl" 
         $cptfullc = $cptfullc + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 11 -and $cptAll -eq 0)
     {
-        $colRights = $colRights + "GenericAll"
+        $colRights = $colRights + "GenericAll" 
         $cptAll = $cptAll + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 12 -and $cptlistch -eq 0)
     {
-        $colRights = $colRights + "ListChildren"
+        $colRights = $colRights + "ListChildren" 
         $cptlistch = $cptlistch + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 13 -and $cptlistob -eq 0)
     {
-        $colRights = $colRights + "ListObject"
+        $colRights = $colRights + "ListObject" 
         $cptlistob = $cptlistob + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 14 -and $cptsynch -eq 0)
     {
-        $colRights = $colRights + "Synchronize"
+        $colRights = $colRights + "Synchronize" 
         $cptsynch = $cptsynch + 1
         $cptchoose = $cptchoose + 1
     }
     elseif($right -eq 15 -and $cptwrprop -eq 0)
     {
-        $colRights = $colRights + "WriteProperty"
+        $colRights = $colRights + "WriteProperty" 
         $cptwrprop = $cptwrprop + 1
         $cptchoose = $cptchoose + 1
     }
 
-    $ObjectGuid = [GUID]("bf967a86-0de6-11d0-a285-00aa003049e2")
-
-    foreach($group in $groups)
-    {
-        $objgroup = $group.Properties;
-        $name = $objgroup.name
+        $ObjectGuid = [GUID]("bf967aa5-0de6-11d0-a285-00aa003049e2")
+    
+        $name = $env:COMPUTERNAME
         $Group = "$Global:DOMAIN\$name"
-        write-host $Group
 
-        $aceID = New-Object System.Security.Principal.NTAccount($Group)
+        $CMNTAccount = New-Object System.Security.Principal.NTAccount($Group)
+ 
+        $ActiveDirectoryRights = $colRights
 
-        $ACE = New-Object -TypeName System.DirectoryServices.ActiveDirectoryAccessRule($aceID,$colRights,$rightype,$ObjectGUID,1)
+        $Inherit = "SelfAndChildren"
 
+        if($right -ne 16)
+        {
+            $ACE = New-Object System.DirectoryServices.ActiveDirectoryAccessRule $CMNTAccount, $ActiveDirectoryRights, $rightype, $Inherit, $ObjectGuid
+            #No error but no result
 
-        #$ACE TOUJOURS NULL ??!!!
-        $ADAcl.AddAccessRule($ACE)
+            $ADAcl.AddAccessRule($ACE)
+            #ERROR : ACE is NULL   
+        }
+
     }
-
-
     Try
     {
-        Set-ACL -Path $ADPath -ACLObject $ADAcl -Passthru
+        Set-ACL -Path $ADPath -ACLObject $ADAcl -Passthru 
     }
     Catch
     {
         Write-Host "Error: Set-ACL didn't work: " $_.Exception.Message -BackgroundColor Black -ForegroundColor Red
-        $inpustop = Read-Host "..."
-        Break
+        $inpustop = Read-Host "Press any key to continue..."
     }
-    $inpustop = Read-Host "..."
 }
-}
+
+
 
 
 #============================# MAIN #============================#
@@ -877,7 +797,7 @@ $againSubMenu = 1
 
 do{
   switch (menuMain){
-  #1 - Save the right environment
+  #1 - Save the environment rights
     1{
       do{
         switch(menuBackup){
@@ -899,9 +819,9 @@ do{
           }
         }
       }while($againSubMenu -eq 1)
-      $Global:flagBackup = 0
+
     }
-  #2 - Display the right environment
+  #2 - Display the environment rights
     2{
     do{
       switch(menuDisplayRight){
@@ -921,7 +841,7 @@ do{
     }while($againSubMenu -eq 1)
 
     }
-  #3 - Restoration of the right environment
+  #3 - Restoration of the environment rights
     3{
       do{
         switch(menuRestoration){
@@ -944,7 +864,7 @@ do{
         }
       }while($againSubMenu -eq 1)
     }
-  #4 - Modify the right environment
+  #4 - Modify the environment rights
     4{
       do{
         switch(menuEdit){
@@ -954,7 +874,7 @@ do{
           }
         #2 - Add an ACL
           2{
-            Add_ACL
+                Add_ACL
           }
         #3 - Help
           3{
@@ -962,7 +882,7 @@ do{
           }
         #0 - Return
           default{
-            $againSubMenu = 0
+            $againSubMenu
           }
         }
       }while($againSubMenu -eq 1)
