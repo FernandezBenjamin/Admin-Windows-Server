@@ -1,8 +1,11 @@
 #Variable Globale
 $GLOBAL:ADPATH = $null
+$GLOBAL:DOMAIN = "esgi.priv"
+$Global:flagBackup = 0
 
 Function Navigate
 {
+<#
     $objDomain = New-Object System.DirectoryServices.DirectoryEntry
 
 
@@ -21,7 +24,6 @@ Function Navigate
         }
 
     write-host "Here are the differents Organizational Units of the Domain : $Global:DOMAIN"
-    write-host "------------------------------------"
 
     $colResults = $objSearcher.FindAll()
     $cpt = 0
@@ -33,63 +35,74 @@ Function Navigate
             write-host "$cpt -> $name"
             $cpt = $cpt + 1
         }
-    write-host "------------------------------------"
-    $nb_ou = Read-Host "Select your number "
-    $cpt = 0
-    foreach ($objResult in $colResults)
-        {
-            $objComputer = $objResult.Properties;
-
-            $name = $objComputer.name
-            if($cpt -eq $nb_ou)
-            {
-                $input = $name
-                $LDAPway = $objResult.Path
-            }
-            $cpt = $cpt + 1
-        }
-
-    $stop = 0
-    while($stop -eq 0)
-    {
-        write-host "Here are the childs of the Organizational Unit you selected : $input"
         write-host "------------------------------------"
-        Write-Host "LDAP =$LDAPway"
-        $nb_char = $LDAPway.Length
-
-        $OUdef = $LDAPway.Substring(7,$nb_char-7)
-        $ADPath = "AD:\$OUdef"
-        $OU_childs = Get-ChildItem -Path $ADPath
-
-        $cpt = 0
-        foreach($ou_child in $OU_childs)
-        {
-            $name = $ou_child.name
-            write-host "[$cpt] -> $name"
-            $cpt = $cpt + 1
-        }
-        write-host "-1 -> QUIT"
         write-host "------------------------------------"
-        $nb_ou = Read-Host "Select your number "
-        if($nb_ou -eq -1){$stop = 1}
+        write-host "Please write the number of the Organizational Unit you want"
+        $nb_ou = Read-Host ">>> "
         $cpt = 0
-        foreach ($ou_child in $OU_childs)
+        foreach ($objResult in $colResults)
             {
-                $ou_chil = $ou_child.Properties;
+                $objComputer = $objResult.Properties;
 
+                $name = $objComputer.name
                 if($cpt -eq $nb_ou)
                 {
-                    $tmp = $ou_child.name
-                    $input = "$input >> $tmp"
-                    $LDAPway = "LDAP://$ou_child"
+                    $input = $name
+                    $LDAPway = $objResult.Path
                 }
                 $cpt = $cpt + 1
             }
-    }
+#>
+        $firstDomain = $GLOBAL:DOMAIN.Split('.')[0]
+        $secondDomain = $GLOBAL:DOMAIN.Split('.')[1]
+        $LDAPway = "LDAP://DC=$firstDomain,DC=$secondDomain"
+        $stop = 0
+        while($stop -eq 0)
+        {
+            write-host "Here are the childs of the Organizational Unit you selected : $input"
+            write-host "------------------------------------"
+            Write-Host "LDAP =$LDAPway"
+            $nb_char = $LDAPway.Length
+            $OUdef = $LDAPway.Substring(7,$nb_char-7)
+            Write-Host "LDAP =$LDAPway"
+            $ADPath = "AD:\$OUdef"
+            $OU_childs = Get-ChildItem -Path $ADPath
+
+            $cpt = 0
+            foreach($ou_child in $OU_childs)
+            {
+                $name = $ou_child.name
+                write-host "[$cpt] -> $name"
+                $cpt = $cpt + 1
+            }
+            write-host "-1 -> QUIT"
+            write-host "------------------------------------"
+            $nb_ou = Read-Host "Select your number "
+            if($nb_ou -eq -1){$stop = 1}
+            $cpt = 0
+            foreach ($ou_child in $OU_childs)
+                {
+                    $ou_chil = $ou_child.Properties;
+
+                    if($cpt -eq $nb_ou)
+                    {
+                        $tmp = $ou_child.name
+                        $input = "$input >> $tmp"
+                        $LDAPway = "LDAP://$ou_child"
+                    }
+                    $cpt = $cpt + 1
+                }
+        }
 
     $Global:ADPATH = $ADPath.ToString()
 }
+#>
+Navigate
 
+Write-Host "AD path =$Global:ADPATH"
+
+
+<#
 $Date = Get-Date -UFormat "%Y_%m_%d_%H_%M"
 
 $OutFile = "C:\Backup\Backup_$Date.csv"
@@ -109,6 +122,10 @@ if (!(Test-Path -Path "C:\Backup")){
 
 
 Navigate
+
+
+
+
 
 $ADPath = $GLOBAL:ADPATH
 
@@ -174,6 +191,5 @@ foreach($Child in $Childs){
 
 	    Add-Content -Value $OutInfo -Path $OutFile
 	}
-
-
 }
+#>

@@ -8,6 +8,9 @@ Set-ExecutionPolicy Unrestricted
 #Variable Global
 $Global:DOMAIN = $null
 $Global:USER = $null
+$Global:ADPATH = $null
+$Global:flagBackup = 0
+
 
 #============================# FUNCTIONS CREDENTIAL #============================#
 
@@ -197,6 +200,9 @@ Function menuBackup{
     Write-Host "`t1 - Yes"
     Write-Host "`t2 - No"
     Write-Host "`t3 - Help"
+    if($Global:flagBackup -eq 1){
+    Write-Host "`n`t Backup done`n"
+    }
     footer
     $choice = Read-Host -Prompt "What do you want to do?"
   }while($choice -lt 0 -or $choice -gt 3)
@@ -391,6 +397,49 @@ Function helpEditMenu{
   return $choice;
 }
 
+#============================# FUNCTION NAVIGATE #============================#
+
+Function Navigate
+{
+  $firstDomain = $GLOBAL:DOMAIN.Split('.')[0]
+  $secondDomain = $GLOBAL:DOMAIN.Split('.')[1]
+  $LDAPway = "LDAP://DC=$firstDomain,DC=$secondDomain"
+
+  $stop = 0
+  while($stop -eq 0){
+    write-host "Here are the childs of the Organizational Unit you selected : $input"
+    write-host "------------------------------------"
+    Write-Host "LDAP =$LDAPway"
+    $nb_char = $LDAPway.Length
+    $OUdef = $LDAPway.Substring(7,$nb_char-7)
+    Write-Host "LDAP =$LDAPway"
+    $ADPath = "AD:\$OUdef"
+    $OU_childs = Get-ChildItem -Path $ADPath
+
+    $cpt = 0
+    foreach($ou_child in $OU_childs){
+      $name = $ou_child.name
+      write-host "[$cpt] -> $name"
+      $cpt = $cpt + 1
+    }
+    write-host "-1 -> QUIT"
+    write-host "------------------------------------"
+    $nb_ou = Read-Host "Select your number "
+    if($nb_ou -eq -1){$stop = 1}
+    $cpt = 0
+    foreach ($ou_child in $OU_childs){
+      $ou_chil = $ou_child.Properties;
+
+      if($cpt -eq $nb_ou){
+        $tmp = $ou_child.name
+        $input = "$input >> $tmp"
+        $LDAPway = "LDAP://$ou_child"
+      }
+      $cpt = $cpt + 1
+    }
+  }
+  $Global:ADPATH = $ADPath.ToString()
+}
 
 #============================# FUNCTION BACKUP #============================#
 
@@ -413,10 +462,15 @@ if (!(Test-Path -Path "C:\Backup")){
 
 
 $Header = "IdentityReference,AccessControlType,IsInherited,PropagationFlags,ActiveDirectoryRights"
-Add-Content -Value $Header -Path $OutFile 
+Add-Content -Value $Header -Path $OutFile
 
 
-$InputDN = Read-Host -Prompt "Write the DistinguishedName of the Organisation Unit"
+$firstDomain = $Global:DOMAIN.Split('.')[0]
+$secondDomain = $Global:DOMAIN.Split('.')[1]
+$InputDN = "DC=$firstDomain,DC=$secondDomain"
+
+
+#$InputDN = Read-Host -Prompt "Write the DistinguishedName of the Organisation Unit"
 
 
 write-host "Backup In Progress"
@@ -434,19 +488,19 @@ $Childs = Get-ChildItem $InputDN -recurse
 foreach($Child in $Childs){
 
 
-    
+
     $Header = $Child.distinguishedName
 
     $header = $header -replace ',','/'
-    
+
     Add-Content -Value $Header -Path $OutFile
-    
 
 
-    
-     
+
+
+
     (Get-Acl $Child.DistinguishedName).access | ft identityreference, accesscontroltype, isinherited, propagationflags,activedirectoryrights -autosize
-    
+
      $ACLs = Get-Acl $Child.DistinguishedName | ForEach-Object {$_.access}
 
 
@@ -470,7 +524,7 @@ foreach($Child in $Childs){
         } else {
             $OutInfo = "$OutInfo, False"
         }
-        
+
 
         if ($ACL.PropagationFlags -eq "InheritOnly"){
             $OutInfo = "$OutInfo, InheritOnly"
@@ -485,10 +539,10 @@ foreach($Child in $Childs){
 	    Add-Content -Value $Final -Path $OutFile
 	}
 
-    
+
 }
 
-
+$Global:flagBackup = 1
 write-host "Backup Is Over"
 }
 
@@ -497,7 +551,7 @@ write-host "Backup Is Over"
 
 Function Import{
 
-$Backup = Import-CSV C:\Backup\Backup_2018_01_09_13_45.csv  
+$Backup = Import-CSV C:\Backup\Backup_2018_01_09_13_45.csv
 
 
 
@@ -509,7 +563,7 @@ foreach ($acl in $Backup ) {
    } else {
         $path = "AD:\$InputDN"
 
-        
+
         $activedirectoryrights = $acl.ActiveDirectoryRights -replace ';',','
         Write-Host $activedirectoryrights
         #Set-Acl -Path $path -IdentityReference $acl.IdentityReference -AccessControlType $acl.AccessControlType -IsInherited $acl.IsInherited
@@ -521,505 +575,295 @@ foreach ($acl in $Backup ) {
 }
 
 
+#============================# FUNCTION NAVIGATE #============================#
 
-
-
-
-
-Function Get-ADSIOU
+Function Navigate
 {
-    # Renvoie toutes les OU du domaine courrant
-    $objDomain = [ADSI]''
-    $objSearcher = New-Object System.DirectoryServices.DirectorySearcher($objDomain)
-    $objSearcher.Filter = '(objectCategory=organizationalUnit)'
-
-    $OU = $objSearcher.FindAll() | Select-object -ExpandProperty Path
-
-    $OU
-}
-
-Function Get-ADUsers
-{
-    echo "**** Utilisateurs du domaine*****"
-
-    $ldapQuery = "(&(objectCategory=user))"
-    $de = new-object system.directoryservices.directoryentry
-    $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
-    $complist = $ads.findall()
-    foreach ($i in $complist)
-    {
-        write-host $i.Path
-
-    }
-}
-
-Function Get-ADGroups
-{
-    echo "**** Groupes du domaine*****"
-
-    $Groupes = 'Administrateur','Admin','Administrateurs','Admins'
-    $ldapQuery = "(&(objectCategory=group))"
-    $de = new-object system.directoryservices.directoryentry
-    $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
-    $complist = $ads.findall()
-    foreach ($i in $complist)
-    {
-        write-host $i.Path
-        if([boolean]( $i.Path.memberof  -match ($Groupes -join '|')) )
+        $firstDomain = $GLOBAL:DOMAIN.Split('.')[0]
+        $secondDomain = $GLOBAL:DOMAIN.Split('.')[1]
+        $LDAPway = "LDAP://DC=$firstDomain,DC=$secondDomain"
+        $stop = 0
+        while($stop -eq 0)
         {
-            echo "Ce groupe fais partie des Administrateurs"
+            cls
+            header("NAVIGATE")
+            write-host "Here are the childs of the Organizational Unit you selected : $input"
+            write-host "------------------------------------"
+            $nb_char = $LDAPway.Length
+            $OUdef = $LDAPway.Substring(7,$nb_char-7)
+            $ADPath = "AD:\$OUdef"
+            $OU_childs = Get-ChildItem -Path $ADPath
+
+            $cpt = 0
+            foreach($ou_child in $OU_childs)
+            {
+                $name = $ou_child.name
+                write-host "[$cpt] -> $name"
+                $cpt = $cpt + 1
+            }
+            write-host "-1 -> QUIT"
+            write-host "------------------------------------"
+            $nb_ou = Read-Host "Select your number "
+            if($nb_ou -eq -1){$stop = 1}
+            $cpt = 0
+            foreach ($ou_child in $OU_childs)
+                {
+                    $ou_chil = $ou_child.Properties;
+
+                    if($cpt -eq $nb_ou)
+                    {
+                        $tmp = $ou_child.name
+                        $input = "$input >> $tmp"
+                        $LDAPway = "LDAP://$ou_child"
+                    }
+                    $cpt = $cpt + 1
+                }
         }
 
-    }
+    $Global:ADPATH = $ADPath.ToString()
 }
 
-Function Get-ADComputers
+
+#============================# FUNCTION AJOUT ACE DANS ACL #============================#
+
+
+Function Add_ACL
 {
-    echo "**** Ordinateurs du domaine*****"
-    $ldapQuery = "(&(objectCategory=computer))"
-    $de = new-object system.directoryservices.directoryentry
-    $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
-    $complist = $ads.findall()
-    foreach ($i in $complist)
-    {
-        write-host $i.Path
+    Navigate
 
+    $ADPath = $Global:ADPATH
+
+    $nb_char = $GLOBAL:ADPATH.Length
+    $tmp = $GLOBAL:ADPATH.Substring(4,$nb_char-4)
+    $LDAPway = "LDAP://$tmp"
+
+
+    Try{
+        $ou = Get-ADOrganizationalUnit -LDAPFilter $LDAPway -Credential $GLOBAL:CRED
     }
-}
-
-function add_acl{
-
-
-echo "Welcome in this function tester"
-$saisie = 2
-while($saisie -lt 6 -and $saisie -gt 0)
-{
-    echo "******MENU******"
-    echo "1- Get-ADUsers"
-    echo "2- Get-ADComputers"
-    echo "3- Get-ADGroups"
-    echo "4- Get-ADSIOU"
-    echo "5- Leave the script"
-    $saisie=Read-Host ">>> "
-
-    if($saisie -eq 1)
-    {
-        Get-ADUsers
+    Catch{
+        Write-Host "Error: OU was not found: " $_.Exception.Message -BackgroundColor Black -ForegroundColor Red
+        $inpustop = Read-Host "..."
+        Break
     }
-    elseif($saisie -eq 2)
-    {
-        Get-ADComputers
+
+    Try{
+        $objACL = (Get-Acl -Path $ADPath).Access | ? ActiveDirectoryRights
+        $objACL.ActiveDirectoryRights
+        }
+    Catch{
+        Write-Host "Error: ACL was not found in OU: " $_.Exception.Message -BackgroundColor Black -ForegroundColor Red
+        $inpustop = Read-Host " ..."
+        Break
     }
-    elseif($saisie -eq 3)
-    {
-        Get-ADGroups
-    }
-    elseif($saisie -eq 4)
-    {
-        Get-ADSIOU
-    }
-    elseif($saisie -eq 5)
-    {
-        $saisie = 0
-    }
-}
 
-$input = Read-Host -prompt "write to Ou name affected"
+    $objDomain = [ADSI]$LDAPway
+    $objSearcher = New-Object System.DirectoryServices.DirectorySearcher
+    $objSearcher.SearchRoot = $objDomain
+    $objSearcher.Filter = ("(objectCategory=group)")
 
-#$input = Read-Host -prompt "write to Ou name affected"
-#master
+    $colProplist = "name"
 
-$right = 13
-while($right -gt 6 -and $right -lt 0)
-{
-    echo "What kind of right do you want to set"
-    echo "1- Modify"
-    echo "2- Read and write"
-    echo "3- Read and execute"
-    echo "4- Write"
-    echo "5- Full control"
-    $right=Read-Host ">>> "
-
-    if($right -eq 1)
-    {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Modify"
-    }
-    elseif($right -eq 2)
-    {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Write, Read"
-    }
-    elseif($right -eq 3)
-    {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"ReadAndExecute"
-    }
-    elseif($right -eq 4)
-    {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Write"
-    }
-    elseif($right -eq 5)
-    {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Fullcontrol"
-    }
-}
-
-$inheritance = 13
-while($inheritance -gt 4 -and $inheritance -lt 0)
-{
-    echo "Set the inheritance"
-    echo "1- ACE inherited by child container"
-    echo "2- ACE inherited by child objects like files"
-    echo "3- No inheritance"
-    $inheritance=Read-Host ">>> "
-
-    if($inheritance -eq 1)
-    {
-        $InheritanceFlag = [System.Security.AccessControl.InheritanceFlags]::ContainerInherit
-    }
-    elseif($inheritance -eq 2)
-    {
-        $InheritanceFlag = [System.Security.AccessControl.InheritanceFlags]::ObjectInherit
-    }
-    elseif($inheritance -eq 3)
-    {
-        $InheritanceFlag = [System.Security.AccessControl.InheritanceFlags]::None
-    }
-}
-
-$propagation = 13
-while($propagation -gt 4 -and $propagation -lt 0)
-{
-    echo "Set the propagation"
-    echo "1- ACE propagated to child objects that already exist"
-    echo "2- ACE not propagated to child objects that already exist"
-    echo "3- No inheritance"
-    $propagation=Read-Host ">>> "
-
-    if($propagation -eq 1)
-    {
-        $PropagationFlag = [System.Security.AccessControl.PropagationFlags]::InheritOnly
-    }
-    elseif($propagation -eq 2)
-    {
-        $PropagationFlag = [System.Security.AccessControl.PropagationFlags]::NoPropagateInherit
-    }
-    elseif($propagation -eq 3)
-    {
-        $PropagationFlag = [System.Security.AccessControl.PropagationFlags]::None
-    }
-}
-
-$type = 13
-while($type -gt 3 -and $type -lt 0)
-{
-    echo "Set the ACE type"
-    echo "1- Allow"
-    echo "2- Deny"
-    $type=Read-Host ">>> "
-
-    if($type -eq 1)
-    {
-        $objType =[System.Security.AccessControl.AccessControlType]::Allow
-    }
-    elseif($type -eq 2)
-    {
-       $objType =[System.Security.AccessControl.AccessControlType]::Deny
-    }
-}
-
-$concat = "$Global:DOMAIN\$Global:user"
-
-
-$objUser = New-Object System.Security.Principal.NTAccount("Winserv0\Administrateur")
-
-
-
-}
-
-
-
-Function Get-ADSIOU
-{
-    # Renvoie toutes les OU du domaine courrant
-    $objDomain = [ADSI]''
-    $objSearcher = New-Object System.DirectoryServices.DirectorySearcher($objDomain)
-    $objSearcher.Filter = '(objectCategory=organizationalUnit)'
-
-    $OU = $objSearcher.FindAll() | Select-object -ExpandProperty Path
-
-    $OU
-}
-
-Function Get-ADUsers
-{
-    echo "**** Utilisateurs du domaine*****"
-
-    $ldapQuery = "(&(objectCategory=user))"
-    $de = new-object system.directoryservices.directoryentry
-    $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
-    $complist = $ads.findall()
-    foreach ($i in $complist)
-    {
-        write-host $i.Path
-
-    }
-}
-
-Function Get-ADGroups
-{
-    echo "**** Groupes du domaine*****"
-
-    $Groupes = 'Administrateur','Admin','Administrateurs','Admins'
-    $ldapQuery = "(&(objectCategory=group))"
-    $de = new-object system.directoryservices.directoryentry
-    $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
-    $complist = $ads.findall()
-    foreach ($i in $complist)
-    {
-        write-host $i.Path
-        if([boolean]( $i.Path.memberof  -match ($Groupes -join '|')) )
+    foreach ($i in $colPropList)
         {
-            echo "Ce groupe fais partie des Administrateurs"
+            $objSearcher.PropertiesToLoad.Add($i)
         }
 
-    }
-}
+    $groups = $objSearcher.FindAll()
 
-Function Get-ADComputers
-{
-    echo "**** Ordinateurs du domaine*****"
-    $ldapQuery = "(&(objectCategory=computer))"
-    $de = new-object system.directoryservices.directoryentry
-    $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
-    $complist = $ads.findall()
-    foreach ($i in $complist)
-    {
-        write-host $i.Path
-
-    }
-}
-
-function add_acl{
-$saisie = 2
-while($saisie -lt 6 -and $saisie -gt 0)
-{
-    echo "******MENU******"
-    echo "1- Get-ADUsers"
-    echo "2- Get-ADComputers"
-    echo "3- Get-ADGroups"
-    echo "4- Get-ADSIOU"
-    echo "5- Leave the script"
-    $saisie=Read-Host ">>> "
-
-    if($saisie -eq 1)
-    {
-        Get-ADUsers
-    }
-    elseif($saisie -eq 2)
-    {
-        Get-ADComputers
-    }
-    elseif($saisie -eq 3)
-    {
-        Get-ADGroups
-    }
-    elseif($saisie -eq 4)
-    {
-        Get-ADSIOU
-    }
-    elseif($saisie -eq 5)
-    {
-        $saisie = 0
-    }
-}
-
-$input = Read-Host -prompt "write to Ou name affected"
-
-
-
-$right = 13
-while($right -gt 6 -and $right -lt 0)
-{
-    echo "What kind of right do you want to set"
-    echo "1- Modify"
-    echo "2- Read and write"
-    echo "3- Read and execute"
-    echo "4- Write"
-    echo "5- Full control"
-    $right=Read-Host ">>> "
-
-    if($right -eq 1)
-    {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Modify"
-    }
-    elseif($right -eq 2)
-    {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Write, Read"
-    }
-    elseif($right -eq 3)
-    {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"ReadAndExecute"
-    }
-    elseif($right -eq 4)
-    {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Write"
-    }
-    elseif($right -eq 5)
-    {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Fullcontrol"
-    }
-}
-
-$path = $input
-$acl = Get-Acl -Path $path
-$concat = "$Global:DOMAIN\$Global:USER"
-$ace = New-Object Security.AccessControl.ActiveDirectoryAccessRule($concat,$colsRights)
-$acl.AddAccessRule($ace)
-Set-Acl -Path $path -AclObject $acl
-
-}
-
-#================ FONCTION ADD ACL================#
-
-
-Function Get-ADSIOU
-{
-    # Renvoie toutes les OU du domaine courrant
-    $objDomain = [ADSI]''
-    $objSearcher = New-Object System.DirectoryServices.DirectorySearcher($objDomain)
-    $objSearcher.Filter = '(objectCategory=organizationalUnit)'
-
-    $OU = $objSearcher.FindAll() | Select-object -ExpandProperty Path
-
-    $OU
-}
-
-Function Get-ADUsers
-{
-    echo "**** Utilisateurs du domaine*****"
-
-    $ldapQuery = "(&(objectCategory=user))"
-    $de = new-object system.directoryservices.directoryentry
-    $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
-    $complist = $ads.findall()
-    foreach ($i in $complist)
-    {
-        write-host $i.Path
-
-    }
-}
-
-Function Get-ADGroups
-{
-    echo "**** Groupes du domaine*****"
-
-    $Groupes = 'Administrateur','Admin','Administrateurs','Admins'
-    $ldapQuery = "(&(objectCategory=group))"
-    $de = new-object system.directoryservices.directoryentry
-    $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
-    $complist = $ads.findall()
-    foreach ($i in $complist)
-    {
-        write-host $i.Path
-        if([boolean]( $i.Path.memberof  -match ($Groupes -join '|')) )
+    $cpt = 0
+    write-host "Here are the differents groups member of this OU"
+    foreach ($group in $groups)
         {
-            echo "Ce groupe fais partie des Administrateurs"
+            $objgroup = $group.Properties;
+            $name = $objgroup.name
+            write-host "$cpt - $name "
+
+            $cpt = $cpt + 1
         }
 
-    }
-}
+    write-host "Do you want to Allow or Deny the next selection ?"
+    $rightType = Read-Host "1- Allow | 2- Deny  >>> "
 
-Function Get-ADComputers
+
+$cptr = 0
+$cptwr = 0
+$cptrwr = 0
+$cptex = 0
+$cptrex = 0
+$cptdel = 0
+$cptmodif = 0
+$cptcrea = 0
+$cptcreadir = 0
+$cptfullc = 0
+$cptAll = 0
+$cptlistch = 0
+$cptlistob = 0
+$cptsynch = 0
+$cptwrprop = 0
+
+$cptchoose = 0
+
+
+$right = 1
+while($right -gt 0 -and $right -lt 16)
 {
-    echo "**** Ordinateurs du domaine*****"
-    $ldapQuery = "(&(objectCategory=computer))"
-    $de = new-object system.directoryservices.directoryentry
-    $ads = new-object system.directoryservices.directorysearcher -argumentlist $de,$ldapQuery
-    $complist = $ads.findall()
-    foreach ($i in $complist)
+    if($rightType -eq 1)
     {
-        write-host $i.Path
-
+        $rightype =[System.Security.AccessControl.AccessControlType]::Allow
     }
-}
-
-function add_acl{
-$saisie = 2
-while($saisie -lt 6 -and $saisie -gt 0)
-{
-    echo "******MENU******"
-    echo "1- Get-ADUsers"
-    echo "2- Get-ADComputers"
-    echo "3- Get-ADGroups"
-    echo "4- Get-ADSIOU"
-    echo "5- Leave the script"
-    $saisie=Read-Host ">>> "
-
-    if($saisie -eq 1)
+    elseif($rightType -eq 2)
     {
-        Get-ADUsers
+        $rightype = [System.Security.AccessControl.AccessControlType]::Deny
     }
-    elseif($saisie -eq 2)
-    {
-        Get-ADComputers
-    }
-    elseif($saisie -eq 3)
-    {
-        Get-ADGroups
-    }
-    elseif($saisie -eq 4)
-    {
-        Get-ADSIOU
-    }
-    elseif($saisie -eq 5)
-    {
-        $saisie = 0
-    }
-}
 
-$input = Read-Host -prompt "write to Ou name affected"
-
-
-
-$right = 13
-while($right -gt 6 -or $right -lt 0)
-{
-    echo "What kind of right do you want to set"
-    echo "1- Modify"
-    echo "2- Read and write"
-    echo "3- Read and execute"
-    echo "4- Write"
-    echo "5- Full control"
+    write-host "Here are different rights you can choose to apply on these groups"
+    if($cptr -eq 0){write-host "1- GenericRead"}
+    if($cptwr -eq 0){write-host "2- GenericWrite"}
+    if($cptrwr -eq 0){write-host "3- ReadControl"}
+    if($cptex -eq 0){write-host "4- GenericExecute"}
+    if($cptrex -eq 0){write-host "5- ReadProperty"}
+    if($cptdel -eq 0){write-host "6- Delete"}
+    if($cptmodif -eq 0){write-host "7- DeleteChild"}
+    if($cptcrea -eq 0){write-host "8- DeleteTree"}
+    if($cptcreadir -eq 0){write-host "9- CreateChild"}
+    if($cptfullc -eq 0){write-host "10- WriteDacl"}
+    if($cptAll -eq 0){write-host "11- GenericAll"}
+    if($cptlistch -eq 0){write-host "12- ListChildren"}
+    if($cptlistob = 0 -eq 0){write-host "13- ListObject"}
+    if($cptsynch -eq 0){write-host "14- Synchronize"}
+    if($cptwrprop -eq 0){write-host "15- WriteProperty"}
+    write-host "16- Stop"
+    $right = $null
     $right=Read-Host ">>> "
 
-    if($right -eq 1)
+    if($right -ne 16 -and $cptchoose -gt 0)
     {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Modify"
+        $colRights = "$colRights,"
     }
-    elseif($right -eq 2)
+
+    if($right -eq 1 -and $cptr -eq 0)
     {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Write, Read"
+        $colRights = $colRights + "GenericRead"
+        $cptr = $cptr + 1
+        $cptchoose = $cptchoose + 1
     }
-    elseif($right -eq 3)
+    elseif($right -eq 2 -and $cptwr -eq 0)
     {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"ReadAndExecute"
+        $colRights = $colRights + "GenericWrite"
+        $cptwr = $cptwr + 1
+        $cptchoose = $cptchoose + 1
     }
-    elseif($right -eq 4)
+    elseif($right -eq 3 -and $cptrwr -eq 0)
     {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Write"
+        $colRights = $colRights + "ReadControl"
+        $cptrwr = $cptrwr + 1
+        $cptchoose = $cptchoose + 1
     }
-    elseif($right -eq 5)
+    elseif($right -eq 4 -and $cptex -eq 0)
     {
-        $colRights = [System.Security.AccessControl.FileSystemRights]"Fullcontrol"
+        $colRights = $colRights + "GenericExecute"
+        $cptex = $cptex + 1
+        $cptchoose = $cptchoose + 1
     }
+    elseif($right -eq 5 -and $cptrex -eq 0)
+    {
+        $colRights = $colRights + "ReadProperty"
+        $cptrex = $cptrex + 1
+        $cptchoose = $cptchoose + 1
+    }
+    elseif($right -eq 6 -and $cptdel -eq 0)
+    {
+        $colRights = $colRights + "Delete"
+        $cptdel = $cptdel + 1
+        $cptchoose = $cptchoose + 1
+    }
+    elseif($right -eq 7 -and $cptmodif -eq 0)
+    {
+        $colRights = $colRights + "DeleteChild"
+        $cptmodif = $cptmodif + 1
+        $cptchoose = $cptchoose + 1
+    }
+    elseif($right -eq 8 -and $cptcrea -eq 0)
+    {
+        $colRights = $colRights + "DeleteTree"
+        $cptcrea = $cptcrea + 1
+        $cptchoose = $cptchoose + 1
+    }
+    elseif($right -eq 9 -and $cptcreadir -eq 0)
+    {
+        $colRights = $colRights + "CreateChild"
+        $cptcreadir = $cptcreadir + 1
+        $cptchoose = $cptchoose + 1
+    }
+    elseif($right -eq 10 -and $cptfullc -eq 0)
+    {
+        $colRights = $colRights + "WriteDacl"
+        $cptfullc = $cptfullc + 1
+        $cptchoose = $cptchoose + 1
+    }
+    elseif($right -eq 11 -and $cptAll -eq 0)
+    {
+        $colRights = $colRights + "GenericAll"
+        $cptAll = $cptAll + 1
+        $cptchoose = $cptchoose + 1
+    }
+    elseif($right -eq 12 -and $cptlistch -eq 0)
+    {
+        $colRights = $colRights + "ListChildren"
+        $cptlistch = $cptlistch + 1
+        $cptchoose = $cptchoose + 1
+    }
+    elseif($right -eq 13 -and $cptlistob -eq 0)
+    {
+        $colRights = $colRights + "ListObject"
+        $cptlistob = $cptlistob + 1
+        $cptchoose = $cptchoose + 1
+    }
+    elseif($right -eq 14 -and $cptsynch -eq 0)
+    {
+        $colRights = $colRights + "Synchronize"
+        $cptsynch = $cptsynch + 1
+        $cptchoose = $cptchoose + 1
+    }
+    elseif($right -eq 15 -and $cptwrprop -eq 0)
+    {
+        $colRights = $colRights + "WriteProperty"
+        $cptwrprop = $cptwrprop + 1
+        $cptchoose = $cptchoose + 1
+    }
+
+    $ObjectGuid = [GUID]("bf967a86-0de6-11d0-a285-00aa003049e2")
+
+    foreach($group in $groups)
+    {
+        $objgroup = $group.Properties;
+        $name = $objgroup.name
+        $Group = "$Global:DOMAIN\$name"
+        write-host $Group
+
+        $aceID = New-Object System.Security.Principal.NTAccount($Group)
+
+        $ACE = New-Object -TypeName System.DirectoryServices.ActiveDirectoryAccessRule($aceID,$colRights,$rightype,$ObjectGUID,1)
+
+
+        #$ACE TOUJOURS NULL ??!!!
+        $ADAcl.AddAccessRule($ACE)
+    }
+
+
+    Try
+    {
+        Set-ACL -Path $ADPath -ACLObject $ADAcl -Passthru
+    }
+    Catch
+    {
+        Write-Host "Error: Set-ACL didn't work: " $_.Exception.Message -BackgroundColor Black -ForegroundColor Red
+        $inpustop = Read-Host "..."
+        Break
+    }
+    $inpustop = Read-Host "..."
 }
-
-$path = $input
-$acl = Get-Acl -Path $path
-$concat = "$Global:DOMAIN\$Global:USER"
-$ace = New-Object Security.AccessControl.ActiveDirectoryAccessRule($concat,$colsRights)
-$acl.AddAccessRule($ace)
-Set-Acl -Path $path -AclObject $acl
-
 }
 
 
@@ -1055,7 +899,7 @@ do{
           }
         }
       }while($againSubMenu -eq 1)
-
+      $Global:flagBackup = 0
     }
   #2 - Display the right environment
     2{
@@ -1110,7 +954,7 @@ do{
           }
         #2 - Add an ACL
           2{
-            add_acl
+            Add_ACL
           }
         #3 - Help
           3{
